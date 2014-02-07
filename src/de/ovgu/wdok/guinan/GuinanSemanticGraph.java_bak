@@ -1,0 +1,120 @@
+package de.ovgu.wdok.guinan;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
+import de.ovgu.wdok.guinan.graph.GuinanEdge;
+import de.ovgu.wdok.guinan.graph.GuinanNode;
+
+public class GuinanSemanticGraph extends HashMap<String,HashMap<String,String>>{
+
+	private ArrayList<GuinanNode> nodes;
+	private ArrayList<GuinanEdge> edges;
+
+	public GuinanSemanticGraph() {
+		this.nodes = new ArrayList<GuinanNode>();
+		this.edges = new ArrayList<GuinanEdge>();
+	}
+
+	public void addNode(GuinanNode node) {
+		this.nodes.add(node);
+	}
+
+	public void removeNode(GuinanNode node) {
+		this.nodes.remove(node);
+	}
+
+	public void addEdge(String startnodelabel, String endnodelabel,
+			double weight, String edgelabel) {
+		GuinanNode start = this.getNode(startnodelabel);
+		GuinanNode end = this.getNode(endnodelabel);
+
+		if (start != null && end != null) {
+
+			HashMap<String, String> data = new HashMap<String, String>();
+			data.put("weight", String.valueOf(weight));
+			data.put("name", edgelabel);
+			GuinanNode edgenode = new GuinanNode(endnodelabel, data);
+
+			// does startNode already exist in edgelist?
+			if (this.isStartNode(start)) {
+				this.addEdgeForStartnode(start, end, data);
+			} else
+				this.edges.add(new GuinanEdge(startnodelabel, edgenode));
+		}
+	}
+
+	private void addEdgeForStartnode(GuinanNode start, GuinanNode end,
+			HashMap<String, String> data) {
+		for(GuinanEdge edge : this.edges){
+			if(edge.getStartnodelabel().equals(start.getLabel()))
+				edge.getEdges().add(end);
+		}
+		
+	}
+
+	// TODO
+	/*
+	 * public void removeEdge(String startnodelabel, String endnodelabel){
+	 * this.edges.remove(this.findEdge(startnodelabel, endnodelabel)); }
+	 */
+
+	// TODO
+	/*
+	 * public GuinanEdge findEdge(String startnodelabel, String endnodelabel){
+	 * GuinanEdge e = new GuinanEdge(new GuinanNode(startnodelabel), new
+	 * GuinanNode(endnodelabel)); for(GuinanEdge ge : this.edges){
+	 * if(ge.equals(e)) return ge; } return null;
+	 * 
+	 * }
+	 */
+
+	public GuinanNode getNode(String label) {
+		for (GuinanNode node : this.nodes) {
+			if (node.getLabel().equals(label))
+				return node;
+		}
+		return null;
+	}
+
+	public ArrayList<GuinanNode> getNodes() {
+		return nodes;
+	}
+
+	public void setNodelist(ArrayList<GuinanNode> nodelist) {
+		this.nodes = nodelist;
+	}
+
+	public ArrayList<GuinanEdge> getEdges() {
+		return edges;
+	}
+
+	public void setEdgelist(ArrayList<GuinanEdge> edgelist) {
+		this.edges = edgelist;
+	}
+
+	public boolean isStartNode(GuinanNode node) {
+		for (GuinanEdge edge : this.edges) {
+			if (edge.getStartnodelabel().equals(node.getLabel()))
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * // tell Guinan what to do when it comes across unknown properties during
+	 * // JSON POJO mapping // AKA ignore the additional fields of special
+	 * Guinan*Result objects
+	 * 
+	 * @param key
+	 *            data field
+	 * @param value
+	 *            value field
+	 */
+	@JsonAnySetter
+	public void handleUnknown(String key, Object value) {
+		// just don't do anything but ignore it
+	}
+}
