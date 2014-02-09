@@ -220,10 +220,10 @@ public class GuinanSlideshowResultContentHandler extends DefaultHandler {
 }
 
 /**
- * 
- * @author <a href="mailto:kkrieger@ovgu.de">Katrin Krieger</a>
- *         IntValueComparator can sort key,value pairs according to the value,
+ *  IntValueComparator can sort key,value pairs according to the value,
  *         which is an integer
+ * @author <a href="mailto:kkrieger@ovgu.de">Katrin Krieger</a>
+ *        
  */
 class IntValueComparator implements Comparator<Map.Entry<String, Integer>> {
 	@Override

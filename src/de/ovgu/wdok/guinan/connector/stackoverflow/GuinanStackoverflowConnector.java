@@ -19,7 +19,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.jsoup.Jsoup;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -65,6 +67,11 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	/** API key for Stackoverflow API */
 	private String API_KEY = "oe0Kq8xA)4p4QTMb3k*jww((";
 
+	/**
+	 * ArrayList with GuinanResults storing the result list of the last request
+	 */
+	private ArrayList<GuinanStackoverflowResult> resultlist;
+
 	public GuinanStackoverflowConnector() {
 
 		// call constructor of super class, setting the name and endpoint
@@ -83,14 +90,15 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 		this.stackoverflowsearchloc = client
 				.resource(getBaseURIForStackoverflowSearch());
 
+		// initialize ArrayList for GuinanResults
+		this.resultlist = new ArrayList<GuinanStackoverflowResult>();
 	}
 
 	/**
 	 * @return URI representing the query endpoint of Stackoverflow API
 	 */
 	private static URI getBaseURIForStackoverflowSearch() {
-		return UriBuilder.fromUri(
-				"https://api.stackexchange.com/2.1/search/advanced?").build();
+		return UriBuilder.fromUri("https://api.stackexchange.com/2.1").build();
 	}
 
 	/**
@@ -111,15 +119,17 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	@Path("query/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Override
+	// initialize question_ids array with size of response list
 	public ArrayList<GuinanResult> query(@QueryParam("q") String query) {
 		// query the stackoverflow API endpoint, passing all needed parameters
 		// like the API key and the actual query
 		// the response will contain the JSON response from the API
-		String response = this.stackoverflowsearchloc
+		String response = this.stackoverflowsearchloc.path("search")
+				.path("advanced").queryParam("filter", "!)S00Zqd)qUFd3vNab3248qIN")
 				.queryParam("key", this.API_KEY).queryParam("sort", "votes")
 				.queryParam("q", query).queryParam("site", "stackoverflow")
 				.get(String.class);
-		
+
 		// build a hashmap where the json_string could be put in
 		HashMap<String, ArrayList<LinkedHashMap<String, String>>> json_tree = null;
 		try {
@@ -144,32 +154,36 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 					.entrySet()) {
 
 				// grep items from the JSON response
-				// an item represents list of  web resources
+				// an item represents list of web resources
 				if (e.getKey().equals("items")) {
-					//make a GuinanResult from the "item"
+					// make a GuinanResult from the "item"
 					return extractGuinanResults(e.getValue());
 				}
 			}
 
 		}
-		//if all else failed, return an empty list
+		// if all else failed, return an empty list
 		return new ArrayList<GuinanResult>();
 	}
 
 	/**
-	 * greps the Web resources from the JSON response and puts it into a list of GuinanResults
-	 * @param json_response an ArrayList containing linked Hashmaps with key-value-pairs (both strings)
+	 * greps the Web resources from the JSON response and puts it into a list of
+	 * GuinanResults
+	 * 
+	 * @param json_response
+	 *            an ArrayList containing linked Hashmaps with key-value-pairs
+	 *            (both strings)
 	 * @return an ArrayList with GuinanResults
 	 */
 	private ArrayList<GuinanResult> extractGuinanResults(
 			ArrayList<LinkedHashMap<String, String>> json_response) {
-		
-		//initialize the result list
-		ArrayList<GuinanResult> grlist = new ArrayList<GuinanResult>();
 
-		//iterate of the linked hashmaps, each representing a web resource
+		// initialize the result list
+		// ArrayList<GuinanResult> grlist = new ArrayList<GuinanResult>();
+
+		// iterate of the linked hashmaps, each representing a web resource
 		for (LinkedHashMap<String, ?> e : json_response) {
-			GuinanResult gr = new GuinanResult();
+			GuinanStackoverflowResult gr = new GuinanStackoverflowResult();
 			if (e.containsKey("link"))
 				gr.set_location((String) e.get("link"));
 			if (e.containsKey("score"))
@@ -179,15 +193,58 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 			if (e.containsKey("body"))
 				gr.setContent((String) e.get("body"));
 			if (e.containsKey("tags")) {
-				gr.setContent_tags((ArrayList) (e.get("tags")));
+				gr.setContent_tags((ArrayList<String>) (e.get("tags")));
 			}
+			if (e.containsKey("question_id"))
+				gr.setQuestion_id((Integer) e.get("question_id"));
 			gr.setDocumenttype("text");
-			gr.set_language("EN"); //TODO
-			grlist.add(gr);
+			gr.set_language("EN"); // TODO
+			
+			if (e.containsKey("answers")) {
+				System.out.println("now fetching comments");
+				this.extractComments(
+						(ArrayList<LinkedHashMap<String, String>>) e
+								.get("answers"), gr);
+			}
+			this.resultlist.add(gr);
 		}
-		return grlist;
+		
+
+		// we need to return only GuinanResults, hence we have to create another
+		// list to return
+		ArrayList<GuinanResult> returnlist = new ArrayList<GuinanResult>();
+		returnlist.addAll(this.getResultlist());
+		return returnlist;
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * Extract the "body" of an "answer" to a Stackoverflow question
+	 * 
+	 * @param commentsmap
+	 *            An ArrayList containing a linked Hashmap with <String,
+	 *            String>- key-value pairs
+	 */
+	private void extractComments(
+			ArrayList<LinkedHashMap<String, String>> commentsmap,
+			GuinanStackoverflowResult gr) {
+		for (LinkedHashMap<String, ?> e : commentsmap) {
+
+			if (e.containsKey("body")){
+				
+						gr.addComment(Jsoup.parse((String) e.get("body")).text());
+						System.out.println("added comment");
+			}
+		}
+	}
+
+	public ArrayList<GuinanStackoverflowResult> getResultlist() {
+		return resultlist;
+	}
+
+	public void setResultlist(ArrayList<GuinanStackoverflowResult> resultlist) {
+		this.resultlist = resultlist;
 	}
 
 	/**

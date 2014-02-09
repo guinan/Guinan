@@ -24,7 +24,9 @@ public class GuinanResult {
 	private String _location;
 
 	/** Array of tags describing the content of the Web resource */
-	private ArrayList<String> _content_tags;
+	private ArrayList<String> original_content_tags;
+	
+	
 
 	/** A double value representing the user rating */
 	private double _rating;
@@ -34,8 +36,6 @@ public class GuinanResult {
 	 * "introduction", ...
 	 */
 	private ArrayList<String> _contenttype_tags;
-	
-	
 
 	/** The type of the Web resource, e.g. "video", "slide", "text", ... */
 	private String _documenttype;
@@ -54,44 +54,47 @@ public class GuinanResult {
 	 * resource
 	 */
 	private String _language;
+	
+	/** ArrayList with comments for a Web Resource, represented as Strings
+	 * 
+	 */
+	private ArrayList<String> comments;
 
 	/** constant for the video content type */
 	public static final String RESOURCE_TYPE_VIDEO = "video";
 
-	/** constant for the slideshwo content type */
+	/** constant for the slideshow content type */
 	public static final String RESOURCE_TYPE_SLIDESHOW = "slideshow";
 	
+	/** constant for the text content type */
 	public static final String RESOURCE_TYPE_TEXT = "text";
 
 	public GuinanResult() {
 		this._location = null;
-		this._content_tags = null;
+		this.original_content_tags = null;
 		this._rating = 0;
 		this._contenttype_tags = null;
 		this._documenttype = null;
 		this._content = null;
 		this._language = null;
+		this.comments = new ArrayList<String>();
 	}
-	
 
-	public GuinanResult(String _title, String _location, ArrayList<String> _content_tags,
-			double _rating, ArrayList<String> _contenttype_tags,
-			String _documenttype, String _content, 
-			String _thumbnail_uri, String _language, ArrayList<String> comments) {
+	public GuinanResult(String title, String location, ArrayList<String> content_tags,
+			double rating, ArrayList<String> contenttype_tags,
+			String documenttype, String content, String language, String thumbailuri, ArrayList<String> comments) {
 		super();
-		this._location = _location;
-		this._content_tags = _content_tags;
-		this._rating = _rating;
-		this._contenttype_tags = _contenttype_tags;
-		this._documenttype = _documenttype;
-		this._content = _content;
-		this._title = _title;
-		this._thumbnail_uri = _thumbnail_uri;
-		this._language = _language;
+		this._title = title;
+		this._location = location;
+		this.original_content_tags = content_tags;
+		this._rating = rating;
+		this._contenttype_tags = contenttype_tags;
+		this._documenttype = documenttype;
+		this._content = content;
+		this._language = language;
+		this._thumbnail_uri=thumbailuri;
 		this.comments = comments;
 	}
-
-
 
 	public String getLocation() {
 		return _location;
@@ -102,11 +105,11 @@ public class GuinanResult {
 	}
 
 	public ArrayList<String> getContent_tags() {
-		return _content_tags;
+		return original_content_tags;
 	}
 
 	public void setContent_tags(ArrayList<String> content_tags) {
-		this._content_tags = content_tags;
+		this.original_content_tags = content_tags;
 	}
 
 	public double getRating() {
@@ -172,16 +175,6 @@ public class GuinanResult {
 	public void set_language(String _language) {
 		this._language = _language;
 	}
-	
-	public ArrayList<String> get_content_tags() {
-		return _content_tags;
-	}
-
-	public void set_content_tags(ArrayList<String> _content_tags) {
-		this._content_tags = _content_tags;
-	}
-	
-	private ArrayList<String> comments;
 
 	public ArrayList<String> getComments() {
 		return comments;
@@ -190,6 +183,20 @@ public class GuinanResult {
 	public void setComments(ArrayList<String> comments) {
 		this.comments = comments;
 	}
+	
+	public void addComment(String newcomment){
+		this.comments.add(newcomment);
+	}
+
+	public ArrayList<String> get_content_tags() {
+		return original_content_tags;
+	}
+
+	public void set_content_tags(ArrayList<String> _content_tags) {
+		this.original_content_tags = _content_tags;
+	}
+
+	
 
 	/**
 	 * // tell Guinan what to do when it comes across unknown properties during

@@ -3,9 +3,12 @@ package de.ovgu.wdok.guinan.connector;
 import java.net.URI;
 import java.util.ArrayList;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -15,7 +18,7 @@ import de.ovgu.wdok.guinan.GuinanResult;
 
 /**
  * 
- * The Interface GuinanService defines all methods a service for Guinan should
+ * The class GuinanConnector defines all methods a connector for Guinan should
  * include
  * 
  * @author <a href="mailto:kkrieger@ovgu.de">Katrin Krieger</a>
@@ -106,7 +109,7 @@ public class GuinanConnector {
 
 		// System.out.println(response.toString());
 		catch (UniformInterfaceException uie) {
-			return "Service " + connectorname
+			return "Connector " + connectorname
 					+ " has already been registered. No changes";
 		} catch (RuntimeException e) {
 
@@ -114,6 +117,35 @@ public class GuinanConnector {
 			e.printStackTrace();
 		}
 		return "";
+	}
+	
+	@GET 
+	@Path("unregister")
+	public Response unregister() {
+		// TODO better return a Response object?
+		WebResource masterloc = this.masterloc;
+		String connectorname = this.getName();
+		try {
+			masterloc.path("unregisterConnector").path(connectorname)
+					.accept(MediaType.TEXT_PLAIN)
+					.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+					.delete();
+			return Response.ok().type("text/plain")
+					.build();
+		}
+
+		 
+		catch (UniformInterfaceException uie) {
+			
+			return Response.ok().type("text/plain")
+					.entity("Service " + connectorname
+					+ " was not registered. No changes. \n\n"+uie.getMessage()).build();
+		} catch (RuntimeException e) {
+
+			System.out.println("Whoops! " + e.getMessage());
+			e.printStackTrace();
+		}
+		return Response.noContent().build();
 	}
 
 }
