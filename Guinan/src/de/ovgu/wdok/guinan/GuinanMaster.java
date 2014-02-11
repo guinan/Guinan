@@ -5,7 +5,6 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -35,7 +34,6 @@ import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.spi.resource.Singleton;
 
 import de.ovgu.wdok.guinan.connector.GuinanConnector;
-import de.ovgu.wdok.guinan.graph.GuinanNode;
 import de.ovgu.wdok.guinan.nlp.KeywordExtractor;
 import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 
@@ -85,7 +83,6 @@ public class GuinanMaster {
 	
 	private String last_query;
 	
-	private GuinanSemanticGraph semanticGraph;
 
 	/** parameterless constructor, initialized the connector list and the client **/
 	public GuinanMaster() {
@@ -101,7 +98,6 @@ public class GuinanMaster {
 		this.running_since = getCurrentTimestamp();
 		this.kwe = new KeywordExtractor();
 		this.last_query="";
-		this.semanticGraph=new GuinanSemanticGraph();
 	}
 
 	private Timestamp getCurrentTimestamp() {
