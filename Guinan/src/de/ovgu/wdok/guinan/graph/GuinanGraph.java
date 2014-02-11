@@ -76,13 +76,9 @@ public class GuinanGraph {
 	 * Adds an edge between two nodes to the graph, if that edge hasn't been
 	 * present before
 	 * 
-	 * @param startnode
-	 *            Start node of the edge
-	 * @param endnode
-	 *            End node of the edge
-	 * @param label
-	 *            Label of the edge
-	 * @return
+	 * @param edge
+	 *            edge to be inserted
+	 * @return true, if edge has been added (and was not present before), false otherwise
 	 */
 	public boolean addEdge(GuinanEdge edge) {
 		if (!this.hasEdge(edge)) {
