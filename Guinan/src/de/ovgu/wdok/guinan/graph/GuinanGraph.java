@@ -2,9 +2,6 @@ package de.ovgu.wdok.guinan.graph;
 
 import java.util.ArrayList;
 
-import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.DefaultDirectedWeightedGraph;
-
 /**
  * 
  * @author <a href="mailto:kkrieger@ovgu.de">Katrin Krieger</a>
