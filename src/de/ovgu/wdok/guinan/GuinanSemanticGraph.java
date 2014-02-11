@@ -8,14 +8,11 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
  * @author <a href="mailto:kkrieger@ovgu.de">Katrin Krieger</a>
  * Oh my, all those hashmaps ...
  */
+@SuppressWarnings("serial")
 public class GuinanSemanticGraph extends HashMap<String,HashMap<String,HashMap<String,String>>>{
 	
-	private HashMap<String,HashMap<String,String>> nodelist;
-	private HashMap<String,HashMap<String,String>> edgelist;
 
 	public GuinanSemanticGraph(){
-		this.nodelist = new HashMap<String,HashMap<String,String>>();
-		this.edgelist = new HashMap<String,HashMap<String,String>>();
 	}
 	public void addNode(String name, String label, String color, String shape){
 		//add only if node with given name is not existent
@@ -33,7 +30,7 @@ public class GuinanSemanticGraph extends HashMap<String,HashMap<String,HashMap<S
 	public HashMap<String,HashMap<String,String>> getNodes(){
 		if(!this.containsKey("nodes")){
 			HashMap<String,HashMap<String,String>> nodelist = new HashMap<String,HashMap<String,String>>();
-			this.put("nodes", edgelist);
+			this.put("nodes", nodelist);
 		}
 		return this.get("nodes");
 	}

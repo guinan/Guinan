@@ -1,6 +1,5 @@
 package de.ovgu.wdok.guinan;
 
-import java.net.URL;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;

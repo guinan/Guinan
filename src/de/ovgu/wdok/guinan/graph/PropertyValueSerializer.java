@@ -16,7 +16,6 @@ public class PropertyValueSerializer extends JsonSerializer<GuinanNode> {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeFieldName(property_value.getLabel());
         //jsonGenerator.writeString(property_value.datatoJSONString());
-        jsonGenerator.writeObject(property_value.getData());
         jsonGenerator.writeEndObject();
     }
 

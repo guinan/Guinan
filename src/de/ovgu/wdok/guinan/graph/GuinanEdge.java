@@ -1,49 +1,55 @@
 package de.ovgu.wdok.guinan.graph;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
+/**
+ * @author <a href="mailto:kkrieger@ovgu.de">Katrin Krieger</a>
+ * @version 0.1
+ */
 
 public class GuinanEdge {
 
-	String startnodelabel;
-	ArrayList<GuinanNode> edgelist;
+	String label;
+	GuinanNode startnode;
+	GuinanNode endnode;
 
-	public GuinanEdge() {
+	public GuinanEdge(GuinanNode startnode, GuinanNode endnode, String label) {
 		super();
-		this.startnodelabel = "";
-		this.edgelist = new ArrayList<GuinanNode>();
+		this.label = label;
+		this.startnode = startnode;
+		this.endnode = endnode;
 	}
 
-	public GuinanEdge(String label) {
-		super();
-		this.startnodelabel = label;
-		this.edgelist = new ArrayList<GuinanNode>();
+	public String getLabel() {
+		return label;
 	}
 
-	public GuinanEdge(String label, GuinanNode node) {
-		super();
-		this.edgelist = new ArrayList<GuinanNode>();
-		this.edgelist.add(node);
-		this.startnodelabel = label;
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
-	public GuinanEdge(String label, ArrayList<GuinanNode> edgelist) {
-		super();
-		this.startnodelabel = label;
-		this.edgelist = edgelist;
+	public GuinanNode getStartnode() {
+		return startnode;
 	}
 
+	public void setStartnode(GuinanNode startnode) {
+		this.startnode = startnode;
+	}
+
+	public GuinanNode getEndnode() {
+		return endnode;
+	}
+
+	public void setEndnode(GuinanNode endnode) {
+		this.endnode = endnode;
+	}
+
+	public boolean equals(GuinanEdge edge) {
+		return (edge.getStartnode().equals(this.getStartnode())
+				&& edge.getEndnode().equals(this.getEndnode()) && edge
+				.getLabel().equals(this.getLabel()));
+	}
 	
-	public String getStartnodelabel() {
-		return startnodelabel;
-	}
-
-	public void setStartnodelabel(String startnodelabel) {
-		this.startnodelabel = startnodelabel;
-	}
-
-	public ArrayList<GuinanNode> getEdges() {
-		return this.edgelist;
+	public String toString(){
+		return "["+this.getStartnode()+"]"+" ---["+this.getLabel()+"]---> ["+this.getEndnode()+"]\n";
 	}
 
 }
