@@ -1,6 +1,14 @@
 de.ovgu.wdok.guinan
 de.ovgu.wdok.guinan.connector
+de.ovgu.wdok.guinan.connector.delicious
 de.ovgu.wdok.guinan.connector.slideshare
 de.ovgu.wdok.guinan.connector.stackoverflow
 de.ovgu.wdok.guinan.connector.twitter
+de.ovgu.wdok.guinan.connector.vimeo
 de.ovgu.wdok.guinan.connector.youtube
+de.ovgu.wdok.guinan.graph
+de.ovgu.wdok.guinan.linkeddata
+de.ovgu.wdok.guinan.nlp
+de.ovgu.wdok.guinan.ontologyconnector
+de.ovgu.wdok.guinan.ontologyconnector.dbpedia
+de.ovgu.wdok.guinan.ontologyconnector.freebase

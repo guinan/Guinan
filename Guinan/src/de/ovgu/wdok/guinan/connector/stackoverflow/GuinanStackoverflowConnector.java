@@ -6,8 +6,6 @@ package de.ovgu.wdok.guinan.connector.stackoverflow;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -19,8 +17,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.jsoup.Jsoup;
 
 import com.fasterxml.jackson.core.JsonParseException;
