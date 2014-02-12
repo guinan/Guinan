@@ -24,11 +24,12 @@ public class GuinanGraph {
 		this.nodes = new ArrayList<GuinanNode>();
 		this.edges = new ArrayList<GuinanEdge>();
 	}
-	
-	public GuinanGraph(String id, GuinanNode node){
-		this.id=id;
+
+	public GuinanGraph(String id, GuinanNode node) {
+		this.id = id;
 		this.nodes = new ArrayList<GuinanNode>();
 		nodes.add(node);
+		this.edges = new ArrayList<GuinanEdge>();
 	}
 
 	public String getId() {
@@ -151,9 +152,11 @@ public class GuinanGraph {
 			}
 		}
 		// traverse edge-wise through the graph
-		for (GuinanEdge edge_candidate : g.getEdges()) {
-			if (!this.hasEdge(edge_candidate)) {
-				this.addEdge(edge_candidate);
+		if (g.getEdges().size() > 0) {
+			for (GuinanEdge edge_candidate : g.getEdges()) {
+				if (!this.hasEdge(edge_candidate)) {
+					this.addEdge(edge_candidate);
+				}
 			}
 		}
 	}
@@ -172,93 +175,86 @@ public class GuinanGraph {
 		ArrayList<GuinanNode> neighbour_list = new ArrayList<GuinanNode>();
 		// list to store the nodes which are candidates for having edges
 		// pointing to node
-		
-		for (GuinanEdge e: this.getEdges()){
-			if(e.getStartnode().equals(node))
+
+		for (GuinanEdge e : this.getEdges()) {
+			if (e.getStartnode().equals(node))
 				neighbour_list.add(e.getEndnode());
-			if(e.getEndnode().equals(node)){
-				if(!neighbour_list.contains(e.getStartnode()))
+			if (e.getEndnode().equals(node)) {
+				if (!neighbour_list.contains(e.getStartnode()))
 					neighbour_list.add(e.getStartnode());
 			}
 		}
-			
+
 		return neighbour_list;
 	}
+
 	/**
 	 * get all nodes the parameter node is pointing to
-	 * @param node Find all GuinanNodes this node is pointing to
+	 * 
+	 * @param node
+	 *            Find all GuinanNodes this node is pointing to
 	 * @return ArrayList with direct neighbour nodes
 	 */
-	public ArrayList<GuinanNode> getDirectNeighbours(GuinanNode node)
-	{
+	public ArrayList<GuinanNode> getDirectNeighbours(GuinanNode node) {
 		ArrayList<GuinanNode> neighbour_list = new ArrayList<GuinanNode>();
 		// list to store the nodes which are candidates for having edges
 		// pointing to node
-		
-		for (GuinanEdge e: this.getEdgesForNode(node)){
+
+		for (GuinanEdge e : this.getEdgesForNode(node)) {
 			neighbour_list.add(e.getEndnode());
 		}
-			
+
 		return neighbour_list;
 	}
-	/** 
-	 * depth first search
-	 * @param startnode node to start the search from
-	 * @return
-	 */
-	//TODO
-	public ArrayList<GuinanNode> depthFirstSearch(GuinanNode startnode){
-		ArrayList<GuinanNode> dfs_search = new ArrayList<GuinanNode>();
-		
-		return dfs_search;
-	}
 
-	/**TODO
-	 * Computes the connected components of the graph
+	/**
+	 * TODO Computes the connected components of the graph
 	 * 
 	 * @return an ArrayList with GuinanGraphs each representing a connected
 	 *         component
 	 */
 	public ArrayList<GuinanGraph> getConnectedComponents() {
 		ArrayList<GuinanGraph> connected_components = new ArrayList<GuinanGraph>();
-		//create a graph for each node
-		for(GuinanNode node : this.getNodes())
-		{
-			connected_components.add(new GuinanGraph("",node));
+		// create a graph for each node
+		for (GuinanNode node : this.getNodes()) {
+			connected_components.add(new GuinanGraph("", node));
 		}
+		//System.out.println(connected_components);
 		return getConnectedComponentsFromGraphs(connected_components);
-		
+
 	}
 
-	//TODO - testing
+	// TODO - testing
 	private ArrayList<GuinanGraph> getConnectedComponentsFromGraphs(
 			ArrayList<GuinanGraph> connected_components) {
-		for(int i=0; i<connected_components.size(); i++){
+		System.out.println("size matters: "+connected_components.size());
+		for (int i = 0; i < connected_components.size()-1; i++) {
 			GuinanGraph g1 = connected_components.get(i);
-			GuinanGraph g2 = connected_components.get(i+1);
-			//graphs are connected
-			ArrayList<GuinanEdge> cedges = commonEdges(g1,g2);
-			if(cedges!=null){
-				//merge graphs
+			GuinanGraph g2 = connected_components.get(i + 1);
+			// graphs are connected
+			ArrayList<GuinanEdge> cedges = commonEdges(g1, g2);
+			if (cedges != null) {
+				System.out.println("there is an edge b/w "+g1+" and "+g2);
+				// merge graphs
 				g1.mergeGraphs(g2);
-				//merge edges
+				// merge edges
 				g1.getEdges().addAll(cedges);
-				connected_components.remove(i+1);
+				connected_components.remove(i + 1);
 				return getConnectedComponentsFromGraphs(connected_components);
 			}
 		}
 		return connected_components;
 	}
-	
-	private ArrayList<GuinanEdge> commonEdges(GuinanGraph g1, GuinanGraph g2){
+
+	private ArrayList<GuinanEdge> commonEdges(GuinanGraph g1, GuinanGraph g2) {
 		ArrayList<GuinanEdge> edges = new ArrayList<GuinanEdge>();
-		for(GuinanNode node1 : g1.getNodes()){
-			for(GuinanNode node2: g2.getNodes()){
+		for (GuinanNode node1 : g1.getNodes()) {
+			for (GuinanNode node2 : g2.getNodes()) {
 				GuinanEdge edge = new GuinanEdge(node1, node2);
-				if(this.hasEdge(edge))
+				if (this.hasEdge(edge))
 					edges.add(edge);
 				GuinanEdge edge2 = new GuinanEdge(node2, node1);
-				if(this.hasEdge(edge2))
+				if (this.hasEdge(edge2))
 					edges.add(edge2);
 			}
 		}
