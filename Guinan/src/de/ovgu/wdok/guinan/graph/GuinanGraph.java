@@ -24,6 +24,12 @@ public class GuinanGraph {
 		this.nodes = new ArrayList<GuinanNode>();
 		this.edges = new ArrayList<GuinanEdge>();
 	}
+	
+	public GuinanGraph(String id, GuinanNode node){
+		this.id=id;
+		this.nodes = new ArrayList<GuinanNode>();
+		nodes.add(node);
+	}
 
 	public String getId() {
 		return id;
@@ -57,6 +63,10 @@ public class GuinanGraph {
 		return null;
 	}
 
+	public int getNumberOfNodes() {
+		return this.getNodes().size();
+	}
+
 	/**
 	 * Adds a node to the graph, if it hasn't been present before
 	 * 
@@ -78,7 +88,8 @@ public class GuinanGraph {
 	 * 
 	 * @param edge
 	 *            edge to be inserted
-	 * @return true, if edge has been added (and was not present before), false otherwise
+	 * @return true, if edge has been added (and was not present before), false
+	 *         otherwise
 	 */
 	public boolean addEdge(GuinanEdge edge) {
 		if (!this.hasEdge(edge)) {
@@ -148,6 +159,113 @@ public class GuinanGraph {
 	}
 
 	/**
+	 * get the neighbours of a node therefore, the method searches for all
+	 * nodes, where node has edges with as well as nodes which have nodes
+	 * pointing to node
+	 * 
+	 * @param node
+	 *            node whose neighbours are searched for
+	 * @return ArrayList with GuinanNodes who are neighbours of the node passed
+	 *         as parameter
+	 */
+	public ArrayList<GuinanNode> getAllNeighbours(GuinanNode node) {
+		ArrayList<GuinanNode> neighbour_list = new ArrayList<GuinanNode>();
+		// list to store the nodes which are candidates for having edges
+		// pointing to node
+		
+		for (GuinanEdge e: this.getEdges()){
+			if(e.getStartnode().equals(node))
+				neighbour_list.add(e.getEndnode());
+			if(e.getEndnode().equals(node)){
+				if(!neighbour_list.contains(e.getStartnode()))
+					neighbour_list.add(e.getStartnode());
+			}
+		}
+			
+		return neighbour_list;
+	}
+	/**
+	 * get all nodes the parameter node is pointing to
+	 * @param node Find all GuinanNodes this node is pointing to
+	 * @return ArrayList with direct neighbour nodes
+	 */
+	public ArrayList<GuinanNode> getDirectNeighbours(GuinanNode node)
+	{
+		ArrayList<GuinanNode> neighbour_list = new ArrayList<GuinanNode>();
+		// list to store the nodes which are candidates for having edges
+		// pointing to node
+		
+		for (GuinanEdge e: this.getEdgesForNode(node)){
+			neighbour_list.add(e.getEndnode());
+		}
+			
+		return neighbour_list;
+	}
+	/** 
+	 * depth first search
+	 * @param startnode node to start the search from
+	 * @return
+	 */
+	//TODO
+	public ArrayList<GuinanNode> depthFirstSearch(GuinanNode startnode){
+		ArrayList<GuinanNode> dfs_search = new ArrayList<GuinanNode>();
+		
+		return dfs_search;
+	}
+
+	/**TODO
+	 * Computes the connected components of the graph
+	 * 
+	 * @return an ArrayList with GuinanGraphs each representing a connected
+	 *         component
+	 */
+	public ArrayList<GuinanGraph> getConnectedComponents() {
+		ArrayList<GuinanGraph> connected_components = new ArrayList<GuinanGraph>();
+		//create a graph for each node
+		for(GuinanNode node : this.getNodes())
+		{
+			connected_components.add(new GuinanGraph("",node));
+		}
+		return getConnectedComponentsFromGraphs(connected_components);
+		
+	}
+
+	//TODO - testing
+	private ArrayList<GuinanGraph> getConnectedComponentsFromGraphs(
+			ArrayList<GuinanGraph> connected_components) {
+		for(int i=0; i<connected_components.size(); i++){
+			GuinanGraph g1 = connected_components.get(i);
+			GuinanGraph g2 = connected_components.get(i+1);
+			//graphs are connected
+			ArrayList<GuinanEdge> cedges = commonEdges(g1,g2);
+			if(cedges!=null){
+				//merge graphs
+				g1.mergeGraphs(g2);
+				//merge edges
+				g1.getEdges().addAll(cedges);
+				connected_components.remove(i+1);
+				return getConnectedComponentsFromGraphs(connected_components);
+			}
+		}
+		return connected_components;
+	}
+	
+	private ArrayList<GuinanEdge> commonEdges(GuinanGraph g1, GuinanGraph g2){
+		ArrayList<GuinanEdge> edges = new ArrayList<GuinanEdge>();
+		for(GuinanNode node1 : g1.getNodes()){
+			for(GuinanNode node2: g2.getNodes()){
+				GuinanEdge edge = new GuinanEdge(node1, node2);
+				if(this.hasEdge(edge))
+					edges.add(edge);
+				GuinanEdge edge2 = new GuinanEdge(node2, node1);
+				if(this.hasEdge(edge2))
+					edges.add(edge2);
+			}
+		}
+		return edges;
+	}
+
+	/**
 	 * pretty print graph as adjacency list
 	 */
 	public String toString() {
@@ -161,7 +279,11 @@ public class GuinanGraph {
 		return pretty;
 	}
 
-	// deep copy
+	/**
+	 * Creates a deep copy of the graph
+	 * 
+	 * @return GuinanGraph with the same nodes and edges as the calling graph
+	 */
 	public GuinanGraph clone() {
 
 		GuinanGraph clonedgraph = new GuinanGraph(this.getId() + "_clone");

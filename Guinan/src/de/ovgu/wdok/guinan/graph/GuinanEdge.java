@@ -17,6 +17,13 @@ public class GuinanEdge {
 		this.startnode = startnode;
 		this.endnode = endnode;
 	}
+	
+	public GuinanEdge(GuinanNode startnode, GuinanNode endnode){
+		super();
+		this.startnode=startnode;
+		this.endnode = endnode;
+		this.label = "";
+	}
 
 	public String getLabel() {
 		return label;
