@@ -93,9 +93,11 @@ public class GuinanGraph {
 	 *         otherwise
 	 */
 	public boolean addEdge(GuinanEdge edge) {
-		if (!this.hasEdge(edge)) {
-			this.getEdges().add(edge);
-			return true;
+		if (edge.getStartnode() != null && edge.getEndnode() != null) {
+			if (!this.hasEdge(edge)) {
+				this.getEdges().add(edge);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -208,7 +210,7 @@ public class GuinanGraph {
 	}
 
 	/**
-	 * TODO Computes the connected components of the graph
+	 * Computes the connected components of the graph
 	 * 
 	 * @return an ArrayList with GuinanGraphs each representing a connected
 	 *         component
@@ -216,46 +218,71 @@ public class GuinanGraph {
 	public ArrayList<GuinanGraph> getConnectedComponents() {
 		ArrayList<GuinanGraph> connected_components = new ArrayList<GuinanGraph>();
 		// create a graph for each node
+		int i = 0;
 		for (GuinanNode node : this.getNodes()) {
-			connected_components.add(new GuinanGraph("", node));
+			connected_components.add(new GuinanGraph(
+					"connected_component_" + i, node));
+			i++;
 		}
-		//System.out.println(connected_components);
+		// System.out.println(connected_components);
 		return getConnectedComponentsFromGraphs(connected_components);
 
 	}
 
-	// TODO - testing
+	/**
+	 * Computes connected components for a graph. In the first iteration, every
+	 * node of the graph is a graph itself. The method looks for common edges
+	 * between nodes or subgraphs, respectively. If two graphs share one or more
+	 * common edges in the original graph, these graphs will be merged and the
+	 * method is called recursively.
+	 * 
+	 * @param connected_components ArrayList of graphs representing subgraphs (connected components)
+	 * @return
+	 */
 	private ArrayList<GuinanGraph> getConnectedComponentsFromGraphs(
 			ArrayList<GuinanGraph> connected_components) {
-		System.out.println("size matters: "+connected_components.size());
-		for (int i = 0; i < connected_components.size()-1; i++) {
-			GuinanGraph g1 = connected_components.get(i);
-			GuinanGraph g2 = connected_components.get(i + 1);
-			// graphs are connected
-			ArrayList<GuinanEdge> cedges = commonEdges(g1, g2);
-			if (cedges != null) {
-				System.out.println("there is an edge b/w "+g1+" and "+g2);
-				// merge graphs
-				g1.mergeGraphs(g2);
-				// merge edges
-				g1.getEdges().addAll(cedges);
-				connected_components.remove(i + 1);
-				return getConnectedComponentsFromGraphs(connected_components);
+		System.out.println("size connected_components: "
+				+ connected_components.size());
+		for (int i = 0; i < connected_components.size() - 1; i++) {
+			for (int j = 1; j < connected_components.size(); j++) {
+				System.out.println("Counter: i:" + i + "\t counter j: " + j);
+				GuinanGraph g1 = connected_components.get(i);
+				GuinanGraph g2 = connected_components.get(j);
+				// graphs are connected
+				ArrayList<GuinanEdge> cedges = commonEdges(g1, g2);
+				if (cedges.size() > 0) {
+					System.out.println("MERGE!");
+					// merge graphs
+					g1.mergeGraphs(g2);
+					// merge edges
+					g1.getEdges().addAll(cedges);
+					connected_components.remove(j);
+					return getConnectedComponentsFromGraphs(connected_components);
+				}
+				System.out.println("NO MERGE!");
 			}
 		}
 		return connected_components;
+	}
+
+	private ArrayList<GuinanEdge> getCommonEdgesForNodes(GuinanNode start,
+			GuinanNode end) {
+		ArrayList<GuinanEdge> edges = new ArrayList<GuinanEdge>();
+		// iterate over all edges for comparison
+		for (GuinanEdge e : this.getEdges()) {
+			if (e.getStartnode().equals(start) && e.getEndnode().equals(end))
+				edges.add(e);
+		}
+		return edges;
 	}
 
 	private ArrayList<GuinanEdge> commonEdges(GuinanGraph g1, GuinanGraph g2) {
 		ArrayList<GuinanEdge> edges = new ArrayList<GuinanEdge>();
 		for (GuinanNode node1 : g1.getNodes()) {
 			for (GuinanNode node2 : g2.getNodes()) {
-				GuinanEdge edge = new GuinanEdge(node1, node2);
-				if (this.hasEdge(edge))
-					edges.add(edge);
-				GuinanEdge edge2 = new GuinanEdge(node2, node1);
-				if (this.hasEdge(edge2))
-					edges.add(edge2);
+
+				edges.addAll(getCommonEdgesForNodes(node1, node2));
+				edges.addAll(getCommonEdgesForNodes(node2, node1));
 			}
 		}
 		return edges;
