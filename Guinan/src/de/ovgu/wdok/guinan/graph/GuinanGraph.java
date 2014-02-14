@@ -224,7 +224,6 @@ public class GuinanGraph {
 					"connected_component_" + i, node));
 			i++;
 		}
-		// System.out.println(connected_components);
 		return getConnectedComponentsFromGraphs(connected_components);
 
 	}
@@ -241,17 +240,13 @@ public class GuinanGraph {
 	 */
 	private ArrayList<GuinanGraph> getConnectedComponentsFromGraphs(
 			ArrayList<GuinanGraph> connected_components) {
-		System.out.println("size connected_components: "
-				+ connected_components.size());
 		for (int i = 0; i < connected_components.size() - 1; i++) {
 			for (int j = 1; j < connected_components.size(); j++) {
-				System.out.println("Counter: i:" + i + "\t counter j: " + j);
 				GuinanGraph g1 = connected_components.get(i);
 				GuinanGraph g2 = connected_components.get(j);
 				// graphs are connected
 				ArrayList<GuinanEdge> cedges = commonEdges(g1, g2);
 				if (cedges.size() > 0) {
-					System.out.println("MERGE!");
 					// merge graphs
 					g1.mergeGraphs(g2);
 					// merge edges
@@ -259,7 +254,6 @@ public class GuinanGraph {
 					connected_components.remove(j);
 					return getConnectedComponentsFromGraphs(connected_components);
 				}
-				System.out.println("NO MERGE!");
 			}
 		}
 		return connected_components;
