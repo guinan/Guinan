@@ -18,7 +18,10 @@ import opennlp.tools.tokenize.TokenizerModel;
 
 public class KeywordExtractor {
 
-	final String opennlp_home = "programming/java/Guinan/WebContent/WEB-INF/lib/apache-opennlp-1.5.3/";
+	//	final String opennlp_home = "programming/java/Guinan/WebContent/WEB-INF/lib/apache-opennlp-1.5.3/";
+	// if this doesn't work set your tomcat working directory to the project root dir
+	// In Eclipse: Run -> Run Configurations... -> Tomcat vX.0 at localhost -> Arguments Tab -> In the working directory section choose other and enter ${workspace_loc:Guinan}
+	final String opennlp_home = "WebContent/WEB-INF/lib/apache-opennlp-1.5.3/";
 	final String opennlp_models_dir = opennlp_home + "/models/";
 	final String POSTagger_model = "en-pos-maxent.bin";
 	final String sentdect_model_file = "en-sent.bin";
@@ -34,7 +37,7 @@ public class KeywordExtractor {
 	String originaltext;
 
 	public KeywordExtractor() {
-
+		
 		InputStream pos_modelIn = null;
 		InputStream sentence_modelIn = null;
 		InputStream tokenizer_modelIn = null;
