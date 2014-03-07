@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import de.ovgu.wdok.guinan.GuinanResult;
+import de.ovgu.wdok.guinan.graph.GuinanGraph;
 
 /**
  * GuinanResult is the result object that is sent back to the calling client. It
@@ -20,6 +21,7 @@ public class GuinanClientResult extends GuinanResult {
 	private ArrayList<String> additional_tags;
 	private ArrayList<String> aggregated_tags;
 	private ArrayList<String> common_tags;
+	private GuinanGraph ontology_concepts;
 
 	public GuinanClientResult() {
 		super();
@@ -93,6 +95,14 @@ public class GuinanClientResult extends GuinanResult {
 		tags.addAll(this.getAdditional_tags());
 		tags.retainAll(this.get_content_tags());
 		return new ArrayList<String>(tags);
+	}
+
+	public GuinanGraph getOntology_concepts() {
+		return ontology_concepts;
+	}
+
+	public void setOntology_concepts(GuinanGraph ontology_concepts) {
+		this.ontology_concepts = ontology_concepts;
 	}
 
 }

@@ -32,22 +32,12 @@ public class GuinanDeliciousConnector extends GuinanConnector {
 	/** location of DeliciousConnector (URI) */
 	private final static String LOCATION = "http://localhost:8080/Guinan/deliciousconnector";
 
-	/** config for client part **/
-	private ClientConfig config;
-
-	/** client part to delicious API */
-	private Client client;
+	
 
 	public GuinanDeliciousConnector() {
 		// call constructor of super class, setting the name and endpoint
 		super(SERVICE_NAME, getBaseURIForDeliciousConnector());
-		// set service's client config to default config
-		this.config = new DefaultClientConfig();
-
-		// create client with config
-		this.client = Client.create(config);
-//		client.addFilter(new GZIPContentEncodingFilter(false)); // mal testen was ist wenn das fehlt
-
+		
 		// set location of the master to provided URI
 		this.masterloc = client.resource(getBaseURIForMaster());
 	}
