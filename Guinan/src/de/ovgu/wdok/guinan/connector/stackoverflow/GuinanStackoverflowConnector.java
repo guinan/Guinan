@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.GZIPContentEncodingFilter;
 
@@ -51,12 +50,6 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	/** location of StackoverflowConnector (URI) */
 	private final static String LOCATION = "http://localhost:8080/Guinan/stackoverflowconnector";
 
-	/** config for client part **/
-	private ClientConfig config;
-
-	/** client part to Stackoverflow API */
-	private Client client;
-
 	/** WebResource representing the Stackoverflow API endpoint */
 	private WebResource stackoverflowsearchloc;
 
@@ -72,11 +65,7 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 
 		// call constructor of super class, setting the name and endpoint
 		super(SERVICE_NAME, getBaseURIForStackoverflowConnector());
-		// set service's client config to default config
-		this.config = new DefaultClientConfig();
-
-		// create client with config
-		this.client = Client.create(config);
+		
 		client.addFilter(new GZIPContentEncodingFilter(false));
 
 		// set location of the master to provided URI
@@ -197,7 +186,6 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 			gr.set_language("EN"); // TODO
 			
 			if (e.containsKey("answers")) {
-				System.out.println("now fetching comments");
 				this.extractComments(
 						(ArrayList<LinkedHashMap<String, String>>) e
 								.get("answers"), gr);
@@ -230,7 +218,6 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 			if (e.containsKey("body")){
 				
 						gr.addComment(Jsoup.parse((String) e.get("body")).text());
-						System.out.println("added comment");
 			}
 		}
 	}

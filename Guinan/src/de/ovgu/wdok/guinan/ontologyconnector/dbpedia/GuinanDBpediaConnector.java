@@ -14,6 +14,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
+import de.ovgu.wdok.guinan.GuinanOntologyResult;
 import de.ovgu.wdok.guinan.GuinanResult;
 import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 
@@ -65,13 +66,14 @@ public class GuinanDBpediaConnector extends GuinanOntologyConnector {
 	@Path("query/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Override
-	public String query(String query) {
+	public ArrayList<GuinanOntologyResult> query(String query) {
 		String response = this.dbpediasearchloc
 				.queryParam("QueryString", query)
 				.get(String.class);
 		
 		
-		return response;
+		//return response;
+		return null;
 	}
 	
 	

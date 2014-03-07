@@ -81,7 +81,7 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 	@Path("query/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Override
-	public String query(@QueryParam("q") String query) {
+	public ArrayList<GuinanOntologyResult> query(@QueryParam("q") String query) {
 		String response = freebasesearchloc
 				.queryParam("query", query)
 				.queryParam("key", API_KEY)
@@ -104,9 +104,9 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 		}
 		
 		if( response_tree == null )
-			return "";
+			return null;
 		
-		return extractFreebaseResults(response_tree.get("result")).toString();
+		return extractFreebaseResults(response_tree.get("result"));
 	}
 	
 	private ArrayList<GuinanOntologyResult> extractFreebaseResults( ArrayList<LinkedHashMap<String, String>> results ) {
@@ -115,7 +115,7 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 		for( LinkedHashMap<String, String> jsonObject: results ) {
 			guinanOntologyResults.add( GuinanFreebaseResult.FromLinkedHashMap(jsonObject) );
 		}
-		
+		System.out.println("\n\n*******************\n "+guinanOntologyResults+"\n\n");
 		return guinanOntologyResults;
 	}
 }

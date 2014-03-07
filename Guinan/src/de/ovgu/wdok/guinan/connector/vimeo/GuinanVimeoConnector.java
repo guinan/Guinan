@@ -17,8 +17,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.oauth.client.OAuthClientFilter;
 import com.sun.jersey.oauth.signature.OAuthParameters;
 import com.sun.jersey.oauth.signature.OAuthSecrets;
@@ -69,7 +67,7 @@ public class GuinanVimeoConnector extends GuinanConnector
 		return UriBuilder.fromUri( getBaseURIForVimeoSearch() ).queryParam( "sort", "relevant" ).queryParam( "full_response", true ).queryParam( "tag", query ).build();
 	}
 
-	private static OAuthClientFilter getVimeoOAuthFilter( Client client )
+	private  OAuthClientFilter getVimeoOAuthFilter( Client client )
 	{
 		// baseline OAuth parameters for access to resource
 		OAuthParameters params = new OAuthParameters().signatureMethod( "HMAC-SHA1" ).consumerKey( CLIENT_ID );
@@ -86,23 +84,16 @@ public class GuinanVimeoConnector extends GuinanConnector
 		return filter;
 	}
 
-	/** config for client part **/
-	private ClientConfig config;
-
-	/** client part to Vimeo API */
-	private Client client;
+	
 
 	public GuinanVimeoConnector()
 	{
 		// call constructor of super class, setting the name and endpoint
 		super( SERVICE_NAME, getBaseURIForVimeoConnector() );
-		// set service's client config to default config
-		this.config = new DefaultClientConfig();
-
-		// create client with config
-		this.client = Client.create( this.config );
+		
 		// add filter for automatic OAuth authorization header
-		this.client.addFilter( getVimeoOAuthFilter( this.client ) );
+		this.client.addFilter( this.getVimeoOAuthFilter( this.client ) );
+		
 
 		// set location of the master to provided URI
 		this.masterloc = this.client.resource( getBaseURIForMaster() );

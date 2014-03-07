@@ -134,10 +134,12 @@ public class KeywordExtractor {
 		// read file content into string
 
 		// clean text
-		System.out
-				.print("Removing non-alphanumeric characters from input\t\t...");
+		//System.out
+		//		.print("Removing non-alphanumeric characters from input\t\t...");
+		//System.out.println("Text was: "+text);
+		
 		text = removeNonAlphanumChars(text);
-		System.out.println(" OK");
+		//System.out.println(" OK");
 		// System.out.println(content);
 		String sentences[] = this.sentenceDetector.sentDetect(text);
 

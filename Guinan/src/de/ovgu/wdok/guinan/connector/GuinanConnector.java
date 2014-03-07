@@ -9,8 +9,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 import de.ovgu.wdok.guinan.GuinanResult;
 
@@ -33,10 +36,25 @@ public class GuinanConnector {
 
 	/** the location of GuinanMaster (URI) */
 	protected WebResource masterloc;
+	
+	
+
+	/** config for client part **/
+	protected ClientConfig config;
+
+	/** client part to specific API */
+	protected Client client;
 
 	public GuinanConnector(String name, URI location) {
 		this.name = name;
 		this.location = location;
+		// set service's client config to default config
+		this.config = new DefaultClientConfig();
+		
+
+		// create client with config
+		this.client = Client.create(config);
+		this.client.setReadTimeout(10000);
 	}
 
 	/**
@@ -63,6 +81,8 @@ public class GuinanConnector {
 	public void setLocation(URI location) {
 		this.location = location;
 	}
+
+
 
 	/**
 	 * This method will be overwritten with a specific implementation of the

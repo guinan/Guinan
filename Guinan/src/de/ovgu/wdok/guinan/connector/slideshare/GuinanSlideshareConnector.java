@@ -55,12 +55,7 @@ public class GuinanSlideshareConnector extends GuinanConnector {
 	/** location of GuinanSlideshareConnector */
 	private final static String LOCATION = "http://localhost:8080/Guinan/slideshareconnector";
 
-	/** configuration for the client part (client for the Slideshare API) */
-	private ClientConfig config;
-
-	/** client part for slideshare API */
-	private Client client;
-
+	
 	/** API key for Slideshare API */
 	private final String API_KEY = "sjLic05V";
 
@@ -74,9 +69,7 @@ public class GuinanSlideshareConnector extends GuinanConnector {
 
 		// call constructor of super class and set connector name and endpoint
 		super(CONNECTOR_NAME, getBaseURIForSlideshareConnector());
-		this.config = new DefaultClientConfig();
-		this.client = Client.create(config);
-		// set location of GuinanMaster
+		
 		this.masterloc = client.resource(getBaseURIForMaster());
 		// set location of slideshare query endoint
 		this.slidesharesearchloc = client

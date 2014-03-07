@@ -1,6 +1,7 @@
 package de.ovgu.wdok.guinan.ontologyconnector;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -10,6 +11,8 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+
+import de.ovgu.wdok.guinan.GuinanOntologyResult;
 
 
 public class GuinanOntologyConnector {
@@ -62,7 +65,7 @@ public class GuinanOntologyConnector {
 	 * @return a list of GuinanResults, mapped from the Web API's response
 	 *         string
 	 */
-	public String query(String query) {
+	public ArrayList<GuinanOntologyResult> query(String query) {
 		return null;
 
 	}
