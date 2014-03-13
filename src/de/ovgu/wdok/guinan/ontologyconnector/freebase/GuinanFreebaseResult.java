@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -154,5 +155,10 @@ public class GuinanFreebaseResult extends GuinanOntologyResult {
 		}
 		
 		return gfr;
+	}
+	
+	@JsonAnySetter
+	public void handleUnknown(String key, Object value) {
+		// just don't do anything but ignore it
 	}
 }

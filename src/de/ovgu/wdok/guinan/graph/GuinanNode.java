@@ -18,6 +18,10 @@ public class GuinanNode {
 		return this.getLabel().equals(node.getLabel());
 	}
 
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
 	public String toString(){
 		return this.getLabel();
 	}

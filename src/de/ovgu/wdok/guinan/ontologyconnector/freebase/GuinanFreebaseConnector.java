@@ -87,7 +87,7 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 				.queryParam("key", API_KEY)
 				.queryParam("output", "(all)")	// get everything the search api can give us at this point
 				.get(String.class);
-		
+		System.out.println(response);
 		HashMap<String, ArrayList<LinkedHashMap<String, String>>> response_tree = null;
 		try {
 			response_tree = new ObjectMapper().readValue(response, HashMap.class);
@@ -105,7 +105,6 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 		
 		if( response_tree == null )
 			return null;
-		
 		return extractFreebaseResults(response_tree.get("result"));
 	}
 	
@@ -115,7 +114,8 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 		for( LinkedHashMap<String, String> jsonObject: results ) {
 			guinanOntologyResults.add( GuinanFreebaseResult.FromLinkedHashMap(jsonObject) );
 		}
-		System.out.println("\n\n*******************\n "+guinanOntologyResults+"\n\n");
+		
 		return guinanOntologyResults;
 	}
+	
 }

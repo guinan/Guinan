@@ -63,7 +63,7 @@ import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 @Path("GuinanMaster")
 public class GuinanMaster {
 
-	/** list of registered ontology connectors**/
+	/** list of registered ontology connectors **/
 	private ArrayList<GuinanOntologyConnector> registered_ontology_connectors;
 
 	/** list of registered connectors **/
@@ -84,9 +84,8 @@ public class GuinanMaster {
 	private String _corsHeaders;
 
 	private Timestamp running_since;
-	
+
 	private String last_query;
-	
 
 	/** parameterless constructor, initialized the connector list and the client **/
 	public GuinanMaster() {
@@ -101,11 +100,11 @@ public class GuinanMaster {
 		this.client = new Client();
 		this.running_since = getCurrentTimestamp();
 		this.kwe = new KeywordExtractor();
-		this.last_query="";
+		this.last_query = "";
 	}
 
 	private Timestamp getCurrentTimestamp() {
-		return  new Timestamp(Calendar.getInstance().getTime().getTime());
+		return new Timestamp(Calendar.getInstance().getTime().getTime());
 	}
 
 	/**
@@ -121,17 +120,17 @@ public class GuinanMaster {
 	@Path("info")
 	public String info() {
 
-		return    "   ____       _                   \n"
+		return "   ____       _                   \n"
 				+ "  / ___|_   _(_)_ __   __ _ _ __  \n"
 				+ " | |  _| | | | | '_ \\ / _` | '_ \\ \n"
 				+ " | |_| | |_| | | | | | (_| | | | |\n"
-				+ "  \\____|\\__,_|_|_| |_|\\__,_|_| |_|\n\n" 
-				+ "Running since: "+this.getRunning_since()
+				+ "  \\____|\\__,_|_|_| |_|\\__,_|_| |_|\n\n"
+				+ "Running since: " + this.getRunning_since()
 				+ "\n\nCurrently registered services: "
 				+ this.getRegisteredConnectors()
 				+ "\n\nCurrently registered ontology connectors: "
-				+ this.getRegistered_ontology_connectors()
-				+ "\n\nLast query: "+this.getLast_query();
+				+ this.getRegistered_ontology_connectors() + "\n\nLast query: "
+				+ this.getLast_query();
 	}
 
 	public Timestamp getRunning_since() {
@@ -226,35 +225,40 @@ public class GuinanMaster {
 	@Path("unregisterConnector/{service}")
 	public Response unregisterConnector(@PathParam("service") String service) {
 		int i = findIndexOfRegisteredGuinanConnector(service);
-		if(i>-1){
-			
+		if (i > -1) {
+
 			this.getRegisteredConnectors().remove(i);
-			return Response.status(Status.OK).entity("Connector "+service+" has been removed successfully.")
+			return Response
+					.status(Status.OK)
+					.entity("Connector " + service
+							+ " has been removed successfully.").build();
+		} else
+			return Response.status(Status.BAD_REQUEST)
+					.entity("Connector " + service + " could not be removed.")
 					.build();
-		}
-		else
-			return Response.status(Status.BAD_REQUEST).entity("Connector "+service+" could not be removed.")
-			.build();
 	}
-	
+
 	@DELETE
 	@Path("unregisterOConnector/{service}")
 	public Response unregisterOConnector(@PathParam("service") String service) {
 		int i = findIndexOfRegisteredGuinanOntologyConnector(service);
-		if(i>-1){
-			
+		if (i > -1) {
+
 			this.getRegistered_ontology_connectors().remove(i);
-			return Response.status(Status.OK).entity("OntologyConnector "+service+" has been removed successfully.")
-					.build();
-		}
-		else
-			return Response.status(Status.BAD_REQUEST).entity("OntologyConnector "+service+" could not be removed.")
-			.build();
+			return Response
+					.status(Status.OK)
+					.entity("OntologyConnector " + service
+							+ " has been removed successfully.").build();
+		} else
+			return Response
+					.status(Status.BAD_REQUEST)
+					.entity("OntologyConnector " + service
+							+ " could not be removed.").build();
 	}
 
 	private int findIndexOfRegisteredGuinanConnector(String service) {
-		int counter=0;
-		for (GuinanConnector c : this.getRegisteredConnectors()){
+		int counter = 0;
+		for (GuinanConnector c : this.getRegisteredConnectors()) {
 			if (c.getName().equals(service))
 				return counter;
 			else
@@ -262,10 +266,11 @@ public class GuinanMaster {
 		}
 		return -1;
 	}
-	
+
 	private int findIndexOfRegisteredGuinanOntologyConnector(String service) {
-		int counter=0;
-		for (GuinanOntologyConnector c : this.getRegistered_ontology_connectors()){
+		int counter = 0;
+		for (GuinanOntologyConnector c : this
+				.getRegistered_ontology_connectors()) {
 			if (c.getName().equals(service))
 				return counter;
 			else
@@ -273,7 +278,6 @@ public class GuinanMaster {
 		}
 		return -1;
 	}
-	
 
 	@POST
 	@Path("registerOntologyConnector/{new_ontology_connector}")
@@ -311,16 +315,16 @@ public class GuinanMaster {
 
 	private boolean existsOntologyConnectorByName(String new_connector) {
 		// iterate through list of registered connectors
-				for (GuinanOntologyConnector a : this.getRegistered_ontology_connectors()) {
-					// if there is a connector with a name that is equal to that passed
-					// as parameter
-					if (a.getName().equals(new_connector))
-						return true;
-				}
-				return false;
-				
+		for (GuinanOntologyConnector a : this
+				.getRegistered_ontology_connectors()) {
+			// if there is a connector with a name that is equal to that passed
+			// as parameter
+			if (a.getName().equals(new_connector))
+				return true;
+		}
+		return false;
+
 	}
-	
 
 	/**
 	 * test, if service with given name is already registered
@@ -359,8 +363,8 @@ public class GuinanMaster {
 	@Path("query/{query_string}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response query(@PathParam("query_string") final String query) {
-		
-		//save last query
+
+		// save last query
 		this.setLast_query(query);
 		// prepare list containing the results of all connectors
 		final ArrayList<GuinanResult> resultsfromconnectors = new ArrayList<GuinanResult>();
@@ -391,7 +395,7 @@ public class GuinanMaster {
 			System.err.println("Could not await termination of all threads");
 			return makeCORS(Response.status(Status.SERVICE_UNAVAILABLE));
 		}
-		
+
 		// new fetch the results from the worker threads' future objects
 		for (Future<ArrayList<GuinanClientResult>> f : futurelist) {
 			try {
@@ -406,21 +410,24 @@ public class GuinanMaster {
 			GuinanClientResult gcr = new GuinanClientResult(gr);
 			ArrayList<String> comments = gcr.getComments();
 			ArrayList<String> unhandled_keywords = new ArrayList<String>();
-			//get further concepts from the content description
-			if(gcr.getContent()!=null)
-				unhandled_keywords.addAll(kwe.extractKeywords(gcr.getContent()));
-			//get further concepts from the comments
-			for (String s : comments){
-				
-				if(s!=null)
+			// get further concepts from the content description
+			if (gcr.getContent() != null)
+				unhandled_keywords
+						.addAll(kwe.extractKeywords(gcr.getContent()));
+			// get further concepts from the comments
+			for (String s : comments) {
+
+				if (s != null)
 					unhandled_keywords.addAll((kwe.extractKeywords(s)));
 			}
 			gcr.setAdditional_tags(new ArrayList<String>(kwe
 					.getSetofKeywords(unhandled_keywords)));
-			//compute common tagset
+			// compute common tagset
 			gcr.setAggregated_tags(gcr.mergeTags());
 			gcr.setCommon_tags(gcr.computeCommonTags());
-			gcr.setOntology_concepts(this.buildConceptGraph(gcr.getCommon_tags(),gcr.get_location()));
+			gcr.setOntology_concepts(this.buildConceptGraph(
+					gcr.getCommon_tags(), gcr.get_location()));
+			System.out.println("ontology_concepts: "+gcr.getOntology_concepts());
 			resultsforclient.add(gcr);
 		}
 
@@ -428,76 +435,139 @@ public class GuinanMaster {
 		return makeCORS(Response.status(Status.OK).entity(resultsforclient));
 
 	}
-	
-	private GuinanGraph buildConceptGraph(ArrayList<String> common_tags, String id) {
+
+	/*
+	 * private GuinanGraph buildConceptGraph(ArrayList<String> common_tags,
+	 * String id) { GuinanGraph conceptGraph = new GuinanGraph(id); for (String
+	 * tag : common_tags) {
+	 * 
+	 * ExecutorService threadExecutor = Executors.newFixedThreadPool(this
+	 * .getRegisteredConnectors().size());
+	 * List<Future<ArrayList<GuinanOntologyResult>>> futurelist = new
+	 * ArrayList<Future<ArrayList<GuinanOntologyResult>>>(); for (final
+	 * GuinanOntologyConnector goc : this.getRegistered_ontology_connectors()) {
+	 * // execute query method for each connector
+	 * Callable<ArrayList<GuinanOntologyResult>> worker = new
+	 * GuinanOConnectorThread( goc, client, tag);
+	 * Future<ArrayList<GuinanOntologyResult>> future = threadExecutor
+	 * .submit(worker); futurelist.add(future); }
+	 * 
+	 * // if done, stop the threads threadExecutor.shutdown(); // shutdown
+	 * worker threads // Wait until all threads are finished try {
+	 * threadExecutor.awaitTermination(30, TimeUnit.SECONDS); } catch
+	 * (InterruptedException e) {
+	 * System.err.println("Could not await termination of all threads");
+	 * //return makeCORS(Response.status(Status.SERVICE_UNAVAILABLE)); }
+	 * 
+	 * // new fetch the results from the worker threads' future objects for
+	 * (Future<ArrayList<GuinanOntologyResult>> f : futurelist) { try {
+	 * 
+	 * for(GuinanOntologyResult gor : f.get()){
+	 * System.out.println("Trying to unpack label from ontology result");
+	 * System.
+	 * out.println("Trying to add GuinanNode with label "+gor.getLabel());
+	 * conceptGraph.addNode(new GuinanNode(gor.getLabel())); } } catch
+	 * (InterruptedException | ExecutionException e) { System.err
+	 * .println("Could not fetch the result from worker thread"); //return
+	 * makeCORS(Response.status(Status.SERVICE_UNAVAILABLE)); } }
+	 * 
+	 * }
+	 * 
+	 * return conceptGraph; }
+	 */
+
+	private GuinanGraph buildConceptGraph(ArrayList<String> common_tags,
+			String id) {
+		System.out.println("Trying to build concept graph");
 		GuinanGraph conceptGraph = new GuinanGraph(id);
 		for (String tag : common_tags) {
-
-			ExecutorService threadExecutor = Executors.newFixedThreadPool(this
-					.getRegisteredConnectors().size());
-			List<Future<ArrayList<GuinanOntologyResult>>> futurelist = new ArrayList<Future<ArrayList<GuinanOntologyResult>>>();
-			for (final GuinanOntologyConnector goc : this.getRegistered_ontology_connectors()) {
-				// execute query method for each connector
-				Callable<ArrayList<GuinanOntologyResult>> worker = new GuinanOConnectorThread(
-						goc, client, tag);
-				Future<ArrayList<GuinanOntologyResult>> future = threadExecutor
-						.submit(worker);
-				futurelist.add(future);
-			}
-
-			// if done, stop the threads
-			threadExecutor.shutdown(); // shutdown worker threads
-			// Wait until all threads are finished
-			try {
-				threadExecutor.awaitTermination(30, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-				System.err.println("Could not await termination of all threads");
-				//return makeCORS(Response.status(Status.SERVICE_UNAVAILABLE));
-			}
-			
-			// new fetch the results from the worker threads' future objects
-			for (Future<ArrayList<GuinanOntologyResult>> f : futurelist) {
+			for (GuinanOntologyConnector goc : this
+					.getRegistered_ontology_connectors()) {
 				try {
-					
-					for(GuinanOntologyResult gor : f.get()){
-						System.out.println("Trying to unpack label from ontology result");
-						System.out.println("Trying to add GuinanNode with label "+gor.getLabel());
-						conceptGraph.addNode(new GuinanNode(gor.getLabel()));
+					String json_res = this.client.resource(goc.getLocation())
+							.queryParam("q", tag)
+							.accept(MediaType.APPLICATION_JSON)
+							.get(String.class);
+
+					// after this was successfull, convert the json response
+					// (basically
+					// a string) into plain old java objects (deserializing)
+					ArrayList<GuinanOntologyResult> ores = GuinanMaster
+							.convertJSONtoGraph(json_res);
+					if (ores != null) {
+						// System.out.println("**************# of onto results: "
+						// + ores.size() + "*************");
+						for (GuinanOntologyResult or : ores) {
+							
+							if (or.getLabel() != null){
+								
+								conceptGraph.addNode(new GuinanNode(or
+										.getLabel()));
+							}
+						}
 					}
-				} catch (InterruptedException | ExecutionException e) {
-					System.err
-							.println("Could not fetch the result from worker thread");
-					//return makeCORS(Response.status(Status.SERVICE_UNAVAILABLE));
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			
 		}
-		
 		return conceptGraph;
 	}
-/*
-	@GET
-	@Path("getSemantics/{query_string}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getSemantics(@PathParam("query_string") final String query) {
-		String[] keywords =query.split(",");
-		GuinanSemanticGraph graph = new GuinanSemanticGraph();
-		for(String kw: keywords)
-			graph.addNode(kw,kw,"#ff950e","dot");
-		
-		ObjectMapper objMapper = new ObjectMapper();
+
+	public static ArrayList<GuinanOntologyResult> convertJSONtoGraph(
+			String json_response) {
+
+		// prepare result list
+		ArrayList<GuinanOntologyResult> result = null;
 		try {
-			String jsonString = objMapper.writeValueAsString(graph);
-			return makeCORS(Response.status(Status.OK).entity(jsonString));
-			
-		} catch (JsonProcessingException e) {
+			// using jacksons mapping capabilities, we try to map the json
+			// response directly to an arraylist of GuinanResults
+			// this should work always, since the json string is only a
+			// serialized version of an arraylist of GuinanResults
+			result = new ObjectMapper().readValue(json_response,
+					new TypeReference<ArrayList<GuinanOntologyResult>>() {
+					});
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			System.err.println("ERROR: JsonParseException");
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+
+			System.err.println("\n\n*************************************************\n\nERROR: JsonMappingException");
+			e.printStackTrace();
+
+		}
+
+		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return makeCORS(Response.status(Status.BAD_REQUEST));
+		//System.out.println(result);
+		return result;
 	}
-		*/
+
+	/*
+	 * @GET
+	 * 
+	 * @Path("getSemantics/{query_string}")
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON) public Response
+	 * getSemantics(@PathParam("query_string") final String query) { String[]
+	 * keywords =query.split(","); GuinanSemanticGraph graph = new
+	 * GuinanSemanticGraph(); for(String kw: keywords)
+	 * graph.addNode(kw,kw,"#ff950e","dot");
+	 * 
+	 * ObjectMapper objMapper = new ObjectMapper(); try { String jsonString =
+	 * objMapper.writeValueAsString(graph); return
+	 * makeCORS(Response.status(Status.OK).entity(jsonString));
+	 * 
+	 * } catch (JsonProcessingException e) { // TODO Auto-generated catch block
+	 * e.printStackTrace(); }
+	 * 
+	 * return makeCORS(Response.status(Status.BAD_REQUEST)); }
+	 */
 
 	/**
 	 * mapping json response to GuinanResult objects (plain old java objects) in
@@ -553,7 +623,6 @@ public class GuinanMaster {
 	private Response makeCORS(ResponseBuilder req, String returnMethod) {
 		ResponseBuilder rb = req.header("Access-Control-Allow-Origin", "*")
 				.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-		
 
 		// if the CORS headers are set, use these or overwrite the settings from
 		// above respectively
@@ -579,32 +648,30 @@ public class GuinanMaster {
 	public static ArrayList<GuinanOntologyResult> convertOntologyRJSONtoPOJO(
 			String json_response) {
 		// prepare result list
-				ArrayList<GuinanOntologyResult> result = null;
-				try {
-					// using jacksons mapping capabilities, we try to map the json
-					// response directly to an arraylist of GuinanResults
-					// this should work always, since the json string is only a
-					// serialized version of an arraylist of GuinanResults
-					result = new ObjectMapper().readValue(json_response,
-							new TypeReference<ArrayList<GuinanOntologyResult>>() {
-							});
-				} catch (JsonParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JsonMappingException e) {
-					// TODO Auto-generated catch block
-					// e.printStackTrace();
+		ArrayList<GuinanOntologyResult> result = null;
+		try {
+			// using jacksons mapping capabilities, we try to map the json
+			// response directly to an arraylist of GuinanResults
+			// this should work always, since the json string is only a
+			// serialized version of an arraylist of GuinanResults
+			result = new ObjectMapper().readValue(json_response,
+					new TypeReference<ArrayList<GuinanOntologyResult>>() {
+					});
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
 
-				}
+		}
 
-				catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-				return result;
+		return result;
 	}
 
 }
-
-
