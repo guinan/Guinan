@@ -219,12 +219,18 @@ public class GuinanGraph {
 		ArrayList<GuinanGraph> connected_components = new ArrayList<GuinanGraph>();
 		// create a graph for each node
 		int i = 0;
-		for (GuinanNode node : this.getNodes()) {
-			connected_components.add(new GuinanGraph(
-					"connected_component_" + i, node));
-			i++;
+		if (this.getNumberOfNodes() == 1){
+			System.out.println("No more nodes, exiting recursion");
+			return connected_components;
 		}
-		return getConnectedComponentsFromGraphs(connected_components);
+		else {
+			for (GuinanNode node : this.getNodes()) {
+				connected_components.add(new GuinanGraph("connected_component_"
+						+ i, node));
+				i++;
+			}
+			return getConnectedComponentsFromGraphs(connected_components);
+		}
 
 	}
 
@@ -235,7 +241,9 @@ public class GuinanGraph {
 	 * common edges in the original graph, these graphs will be merged and the
 	 * method is called recursively.
 	 * 
-	 * @param connected_components ArrayList of graphs representing subgraphs (connected components)
+	 * @param connected_components
+	 *            ArrayList of graphs representing subgraphs (connected
+	 *            components)
 	 * @return
 	 */
 	private ArrayList<GuinanGraph> getConnectedComponentsFromGraphs(

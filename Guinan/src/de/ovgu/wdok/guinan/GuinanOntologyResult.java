@@ -2,6 +2,10 @@ package de.ovgu.wdok.guinan;
 
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import de.ovgu.wdok.guinan.graph.GuinanNode;
 
 /**
@@ -20,9 +24,38 @@ public class GuinanOntologyResult extends GuinanNode{
 	 * 
 	 * @param label primary identifier
 	 */
-	public GuinanOntologyResult(String label) {
+	@JsonCreator
+	public GuinanOntologyResult(@JsonProperty("label") String label) {
 		super(label);
 		this.sameAsLabels = new ArrayList<String>();
+	}
+		
+	
+	public ArrayList<String> getSameAsLabels() {
+		return sameAsLabels;
+	}
+
+
+
+	public void setSameAsLabels(ArrayList<String> sameAsLabels) {
+		this.sameAsLabels = sameAsLabels;
+	}
+
+	
+
+	/**
+	 * // tell Guinan what to do when it comes across unknown properties during
+	 * // JSON POJO mapping // AKA ignore the additional fields of special
+	 * Guinan*Result objects
+	 * 
+	 * @param key
+	 *            data field
+	 * @param value
+	 *            value field
+	 */
+	@JsonAnySetter
+	public void handleUnknown(String key, Object value) {
+		// just don't do anything but ignore it
 	}
 
 }
