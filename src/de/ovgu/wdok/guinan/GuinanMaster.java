@@ -59,7 +59,7 @@ import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
  * @version 0.6
  * **/
 @Singleton
-/* GuinanMaster's suffix of it's location will be /GuinanMaster */
+/* GuinanMaster's suffix of its location will be /GuinanMaster */
 @Path("GuinanMaster")
 public class GuinanMaster {
 

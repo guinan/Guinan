@@ -20,6 +20,44 @@ import de.ovgu.wdok.guinan.graph.GuinanNode;
 public class GuinanOntologyResult extends GuinanNode{
 
 	private ArrayList<String> sameAsLabels;
+	private String URI;
+	private String description;
+	private ArrayList<String> categories;
+	
+	public GuinanOntologyResult(){
+		super("");
+	}
+	
+	public String getURI() {
+		return URI;
+	}
+
+
+	public void setURI(String URI) {
+		URI = URI;
+	}
+
+
+	public String getDescription() {
+		return description;
+	}
+
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+
+	public ArrayList<String> getCategories() {
+		return categories;
+	}
+
+
+	public void setCategories(ArrayList<String> categories) {
+		this.categories = categories;
+	}
+
+
 	/**
 	 * 
 	 * @param label primary identifier
