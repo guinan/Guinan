@@ -41,43 +41,46 @@ import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
  * @version 0.1
  */
 
-@Path("/dbpediaconnector/")
-public class GuinanDBpediaConnector extends GuinanOntologyConnector {
+@Path( "/dbpediaconnector/" )
+public class GuinanDBpediaConnector extends GuinanOntologyConnector
+{
 
-	/** unique name */
-	private final static String CONNECTOR_NAME = "GuinanDBPediaOConnector";
+  /** unique name */
+  private final static String CONNECTOR_NAME = "GuinanDBPediaOConnector";
 
-	/** location of GuinanDBPediaOConnector */
-	private final static String LOCATION = "http://localhost:8080/Guinan/dbpediaconnector";
+  /** location of GuinanDBPediaOConnector */
+  private final static String LOCATION = "http://localhost:8080/Guinan/dbpediaconnector";
 
-	/** configuration for the client part (client for the API of DBPedia) */
-	private ClientConfig config;
+  /** configuration for the client part (client for the API of DBPedia) */
+  private ClientConfig config;
 
-	/** client part for API of dbpedia */
-	private Client client;
+  /** client part for API of dbpedia */
+  private Client client;
+
+  /** Web resource representation of dbpedia API query endpoint */
+  private WebResource dbpediasearchloc;
+
+  public GuinanDBpediaConnector()
+  {
+	super( CONNECTOR_NAME, getBaseURIForDBpediaOConnector() );
+	this.config = new DefaultClientConfig();
+	this.client = Client.create( config );
 	
-	/** Web resource representation of dbpedia API query endpoint */
-	private WebResource dbpediasearchloc;
+	// set location of GuinanMaster
+	this.masterloc = client.resource( getBaseURIForMaster() );
+	// set location of slideshare query endoint
+	this.dbpediasearchloc = client.resource( getBaseURIForDBPediaSearch() );
+  }
 
-	public GuinanDBpediaConnector() {
-		super(CONNECTOR_NAME, getBaseURIForDBpediaOConnector());
-		this.config = new DefaultClientConfig();
-		this.client = Client.create(config);
-		// set location of GuinanMaster
-		this.masterloc = client.resource(getBaseURIForMaster());
-		// set location of slideshare query endoint
-		this.dbpediasearchloc = client
-				.resource(getBaseURIForDBPediaSearch());
-	}
+  private URI getBaseURIForDBPediaSearch()
+  {
+	return UriBuilder.fromUri( "http://lookup.dbpedia.org/api/search.asmx/KeywordSearch" ).build();
+  }
 
-	private URI getBaseURIForDBPediaSearch() {
-		return UriBuilder.fromUri(
-				"http://lookup.dbpedia.org/api/search.asmx/KeywordSearch").build();
-	}
-
-	private static URI getBaseURIForDBpediaOConnector() {
-		return UriBuilder.fromUri(LOCATION + "/query").build();
-	}
+  private static URI getBaseURIForDBpediaOConnector()
+  {
+	return UriBuilder.fromUri( LOCATION + "/query" ).build();
+  }
 
 	@GET
 	@Path("query/")
@@ -85,9 +88,10 @@ public class GuinanDBpediaConnector extends GuinanOntologyConnector {
 	@Override
 	public ArrayList<GuinanOntologyResult> query(@QueryParam("q") String query) {
 		String response = this.dbpediasearchloc
-				.queryParam("QueryString", query)
-				.get(String.class);
-		
+			.queryParam( "QueryString", query )
+			//.queryParam( "QueryClass", "Resource" )
+			//.header( "Accept", "application/json" )
+			.get( String.class );
 		
 		//return response;
 		return this.extractGuinanOntologyResultsFromXMLResponse(response);
