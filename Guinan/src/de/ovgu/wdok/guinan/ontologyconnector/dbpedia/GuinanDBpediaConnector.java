@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,6 +26,15 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
@@ -59,6 +69,9 @@ public class GuinanDBpediaConnector extends GuinanOntologyConnector
 
   /** Web resource representation of dbpedia API query endpoint */
   private WebResource dbpediasearchloc;
+  
+  /** Objectmapper used to map JSON Strings into Objects **/
+  private ObjectMapper objectMapper;
 
   public GuinanDBpediaConnector()
   {
@@ -70,6 +83,8 @@ public class GuinanDBpediaConnector extends GuinanOntologyConnector
 	this.masterloc = client.resource( getBaseURIForMaster() );
 	// set location of slideshare query endoint
 	this.dbpediasearchloc = client.resource( getBaseURIForDBPediaSearch() );
+	
+	this.objectMapper = new ObjectMapper( new JsonFactory() );
   }
 
   private URI getBaseURIForDBPediaSearch()
@@ -90,11 +105,12 @@ public class GuinanDBpediaConnector extends GuinanOntologyConnector
 		String response = this.dbpediasearchloc
 			.queryParam( "QueryString", query )
 			//.queryParam( "QueryClass", "Resource" )
-			//.header( "Accept", "application/json" )
+			.header( "Accept", "application/json" )
 			.get( String.class );
 		
 		//return response;
-		return this.extractGuinanOntologyResultsFromXMLResponse(response);
+		//return this.extractGuinanOntologyResultsFromXMLResponse(response);
+		return this.extractGuinanOntologyResultsFromJSONResponse( response );
 	}
 
 	private ArrayList<GuinanOntologyResult> extractGuinanOntologyResultsFromXMLResponse(
@@ -130,5 +146,76 @@ public class GuinanDBpediaConnector extends GuinanOntologyConnector
 				return resultlist;
 	}
 	
+	private ArrayList<GuinanOntologyResult> extractGuinanOntologyResultsFromJSONResponse( String response )
+	{
+	  ArrayList<GuinanOntologyResult> resultlist = new ArrayList<GuinanOntologyResult>();
+	  
+	  HashMap<String, ArrayList<String>> resultItems = null;
+	  TypeReference<HashMap<String, ArrayList<String>>> typeRef = new TypeReference<HashMap<String,ArrayList<String>>>() {};
+	  
+	  try
+	  {
+		resultItems = objectMapper.readValue( response, typeRef );
+	  }
+	  catch( JsonParseException e )
+	  {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	  }
+	  catch( JsonMappingException e )
+	  {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	  }
+	  catch( IOException e )
+	  {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	  }
+	  
+	  for( String itemStr: resultItems.get( "results" ) )
+	  {
+		GuinanOntologyResult oResult = extractOntologyResultFromJSONString( itemStr );
+		resultlist.add( oResult );
+	  }
+	  
+	  return resultlist;
+	}
 	
+	private GuinanOntologyResult extractOntologyResultFromJSONString( String jsonString )
+	{
+	  GuinanOntologyResult result = new GuinanOntologyResult();
+	  JsonNode rootNode = null;
+	  try
+	  {
+		rootNode = objectMapper.readTree( jsonString );
+	  }
+	  catch( JsonProcessingException e )
+	  {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	  }
+	  catch( IOException e )
+	  {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	  }
+	  
+	  if( rootNode != null )
+	  {
+		Model model = ModelFactory.createDefaultModel();
+		String baseURI = "http://de.ovgu.wdok.guinan.ontologyresult/";
+		
+		addJsonNodeToRDFModel( rootNode, model, baseURI );
+		
+		result.setRDFModel( model );
+	  }
+	  
+	  return result;
+	}
+	
+	private void addJsonNodeToRDFModel( JsonNode node, Model model, String baseURI )
+	{
+	  // here be dragons
+	}
 }

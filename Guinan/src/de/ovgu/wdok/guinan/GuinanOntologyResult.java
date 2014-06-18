@@ -1,10 +1,12 @@
 package de.ovgu.wdok.guinan;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hp.hpl.jena.rdf.model.Model;
 
 import de.ovgu.wdok.guinan.graph.GuinanNode;
 
@@ -19,10 +21,12 @@ import de.ovgu.wdok.guinan.graph.GuinanNode;
 
 public class GuinanOntologyResult extends GuinanNode{
 
-	private ArrayList<String> sameAsLabels;
+	private ArrayList<String> sameAsLabels; // what's this?
 	private String URI;
 	private String description;
 	private ArrayList<String> categories;
+	
+	private Model model;
 	
 	public GuinanOntologyResult(){
 		super("");
@@ -34,7 +38,7 @@ public class GuinanOntologyResult extends GuinanNode{
 
 
 	public void setURI(String URI) {
-		URI = URI;
+		this.URI = URI;
 	}
 
 
@@ -79,7 +83,26 @@ public class GuinanOntologyResult extends GuinanNode{
 		this.sameAsLabels = sameAsLabels;
 	}
 
+	public void setRDFModel( Model model )
+	{
+	  this.model = model;
+	}
 	
+	public Model getRDFModel()
+	{
+	  return model;
+	}
+	
+	@Override
+	public String toString()
+	{
+	  if( model == null )
+		return super.toString();
+	  
+	  StringWriter writer = new StringWriter();
+	  model.write( writer, "JSON-LD" );
+	  return writer.toString();
+	}
 
 	/**
 	 * // tell Guinan what to do when it comes across unknown properties during
