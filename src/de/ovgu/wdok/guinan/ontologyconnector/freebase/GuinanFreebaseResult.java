@@ -3,15 +3,15 @@
  */
 package de.ovgu.wdok.guinan.ontologyconnector.freebase;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 import de.ovgu.wdok.guinan.GuinanOntologyResult;
 
@@ -160,5 +160,45 @@ public class GuinanFreebaseResult extends GuinanOntologyResult {
 	@JsonAnySetter
 	public void handleUnknown(String key, Object value) {
 		// just don't do anything but ignore it
+	}
+	
+	public Model createRDFModel()
+	{
+	  Model resultModel = ModelFactory.createDefaultModel();
+	  String baseURI = "http://de.ovgu.wdok.guinan.ontologyconnector/";
+	  
+	  Resource baseResource = resultModel.createResource( baseURI + this.getLabel() );
+	  
+	  Property mid = resultModel.createProperty( baseURI + "mid" );
+	  baseResource.addProperty( mid, this.getMid() );
+	  
+	  Property id = resultModel.createProperty( baseURI + "id" );
+	  baseResource.addProperty( id, this.getId() );
+	  
+	  Property name = resultModel.createProperty( baseURI + "name" );
+	  baseResource.addProperty( name, this.getName() );
+		
+	  Property lang = resultModel.createProperty( baseURI + "lang" );
+	  baseResource.addProperty( lang, this.getLang() );
+	  
+	  Property score = resultModel.createProperty( baseURI + "score" );
+	  baseResource.addProperty( score, this.getScore().toString() );
+	  
+	  Property pNotable = resultModel.createProperty( baseURI + "notable" );
+	  Resource rNotable = resultModel.createResource( baseURI + "notable" );
+	  baseResource.addProperty( pNotable, rNotable );
+	  Property nId = resultModel.createProperty( rNotable.getURI() + "id" );
+	  Property nName = resultModel.createProperty( rNotable.getURI() + "name" );
+	  rNotable.addProperty( nId, this.getNotableId() );
+	  rNotable.addProperty( nName, this.getNotableName() );
+	  
+	  for( String key: this.extraData.keySet() )
+	  {
+		Property prop = resultModel.createProperty( baseResource.getURI() + key );
+		for( String value: this.extraData.get( key ) )
+		  baseResource.addProperty( prop, value );
+	  }
+	  
+	  return resultModel;
 	}
 }
