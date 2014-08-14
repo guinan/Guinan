@@ -1,7 +1,11 @@
 package de.ovgu.wdok.guinan;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -25,7 +29,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,10 +38,13 @@ import com.sun.jersey.spi.resource.Singleton;
 
 import de.ovgu.wdok.guinan.connector.GuinanConnector;
 import de.ovgu.wdok.guinan.connector.GuinanThread;
+import de.ovgu.wdok.guinan.connector.delicious.GuinanDeliciousConnector;
+import de.ovgu.wdok.guinan.connector.slideshare.GuinanSlideshareConnector;
+import de.ovgu.wdok.guinan.connector.stackoverflow.GuinanStackoverflowConnector;
+import de.ovgu.wdok.guinan.connector.vimeo.GuinanVimeoConnector;
 import de.ovgu.wdok.guinan.graph.GuinanGraph;
 import de.ovgu.wdok.guinan.graph.GuinanNode;
 import de.ovgu.wdok.guinan.nlp.KeywordExtractor;
-import de.ovgu.wdok.guinan.ontologyconnector.GuinanOConnectorThread;
 import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 
 /**
@@ -62,6 +68,8 @@ import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 /* GuinanMaster's suffix of its location will be /GuinanMaster */
 @Path("GuinanMaster")
 public class GuinanMaster {
+	
+	private final String USER_AGENT = "Mozilla/5.0";
 
 	/** list of registered ontology connectors **/
 	private ArrayList<GuinanOntologyConnector> registered_ontology_connectors;
@@ -101,7 +109,54 @@ public class GuinanMaster {
 		this.running_since = getCurrentTimestamp();
 		this.kwe = new KeywordExtractor();
 		this.last_query = "";
+		// if there are no connectors registered, try to register them now
+		//this.registerConnectors();
 	}
+
+	@GET
+	@Path("rc")
+	public void registerConnectors() {
+
+		try {
+
+			/* registering SlideshareConnector 
+			System.out.print("Registering SlideshareConnector ... ");
+			this.sendGet("http://localhost:10080/Guinan/slideshareconnector/register");
+			System.out.println(" done.");
+
+			/* registering StackoverflowConnector 
+			System.out.print("Registering StackoverFlowConnector ... ");
+			this.sendGet("http://localhost:10080/Guinan/stackoverflowconnector/register");
+			System.out.println(" done.");
+
+			/* registering DeliciousConnector 
+			System.out.print("Registering DeliciousConnector ... ");
+			this.sendGet("http://localhost:10080/Guinan/deliciousconnector/register");
+			System.out.println(" done.");
+
+			/* registering VimeoConnector 
+			System.out.print("Registering Vimeoconnecotr ... ");
+			this.sendGet("http://localhost:10080/Guinan/vimeoconnector/register");
+			System.out.println(" done.");*/
+			GuinanDeliciousConnector del = new GuinanDeliciousConnector();
+			del.register();
+			
+			GuinanStackoverflowConnector so = new GuinanStackoverflowConnector();
+			so.register();
+			
+			GuinanVimeoConnector vim = new GuinanVimeoConnector();
+			vim.register();
+			
+			GuinanSlideshareConnector sl = new GuinanSlideshareConnector();
+			sl.register();
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+	}
+	
+	
 
 	private Timestamp getCurrentTimestamp() {
 		return new Timestamp(Calendar.getInstance().getTime().getTime());
@@ -167,6 +222,8 @@ public class GuinanMaster {
 	public void setLast_query(String last_query) {
 		this.last_query = last_query;
 	}
+	
+	
 
 	/**
 	 * via HTTP POST .../register/<connectorname> a connector can register to
@@ -425,9 +482,10 @@ public class GuinanMaster {
 			// compute common tagset
 			gcr.setAggregated_tags(gcr.mergeTags());
 			gcr.setCommon_tags(gcr.computeCommonTags());
-			gcr.setOntology_concepts(this.buildConceptGraph(
-					gcr.getCommon_tags(), gcr.get_location()));
-			System.out.println("ontology_concepts: "+gcr.getOntology_concepts());
+			gcr.computeTermFrequency();
+			// gcr.setOntology_concepts(this.buildConceptGraph(
+			// gcr.getCommon_tags(), gcr.get_location()));
+			// System.out.println("ontology_concepts: "+gcr.getOntology_concepts());
 			resultsforclient.add(gcr);
 		}
 
@@ -498,9 +556,9 @@ public class GuinanMaster {
 						// System.out.println("**************# of onto results: "
 						// + ores.size() + "*************");
 						for (GuinanOntologyResult or : ores) {
-							
-							if (or.getLabel() != null){
-								
+
+							if (or.getLabel() != null) {
+
 								conceptGraph.addNode(new GuinanNode(or
 										.getLabel()));
 							}
@@ -510,7 +568,7 @@ public class GuinanMaster {
 					e.printStackTrace();
 				}
 			}
-			
+
 		}
 		return conceptGraph;
 	}
@@ -535,7 +593,8 @@ public class GuinanMaster {
 		} catch (JsonMappingException e) {
 			// TODO Auto-generated catch block
 
-			System.err.println("\n\n*************************************************\n\nERROR: JsonMappingException");
+			System.err
+					.println("\n\n*************************************************\n\nERROR: JsonMappingException");
 			e.printStackTrace();
 
 		}
@@ -544,7 +603,7 @@ public class GuinanMaster {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//System.out.println(result);
+		// System.out.println(result);
 		return result;
 	}
 

@@ -48,7 +48,7 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	private final static String SERVICE_NAME = "GuinanStackoverflowConnector";
 
 	/** location of StackoverflowConnector (URI) */
-	private final static String LOCATION = "http://localhost:8080/Guinan/stackoverflowconnector";
+	private final static String LOCATION = "http://localhost:10080/Guinan/stackoverflowconnector";
 
 	/** WebResource representing the Stackoverflow API endpoint */
 	private WebResource stackoverflowsearchloc;
@@ -95,7 +95,7 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	 * @param query
 	 *            the query string, extracted from the URL containing the
 	 *            parameter "q", e.g.
-	 *            "http://localhost:8080/Guinan/stackoverflowconnector/query?q=foo"
+	 *            "http://localhost:10080/Guinan/stackoverflowconnector/query?q=foo"
 	 * @return ArrayList containing GuinanResults with the response from the Web
 	 *         API
 	 * 

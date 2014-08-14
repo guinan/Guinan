@@ -32,7 +32,7 @@ public class GuinanVimeoConnector extends GuinanConnector
 	private final static String SERVICE_NAME = "GuinanVimeoConnector";
 
 	/** location of VimeoConnector (URI) */
-	private final static String LOCATION = "http://localhost:8080/Guinan/vimeoconnector";
+	private final static String LOCATION = "http://localhost:10080/Guinan/vimeoconnector";
 
 	// OAuth Parameters
 	private final static String CLIENT_ID = "1eb1df1747bb9bc1fc1451e27e40949d1bf9d6c2";
