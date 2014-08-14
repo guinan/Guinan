@@ -53,7 +53,7 @@ public class GuinanSlideshareConnector extends GuinanConnector {
 	private final static String CONNECTOR_NAME = "GuinanSlideshareConnector";
 
 	/** location of GuinanSlideshareConnector */
-	private final static String LOCATION = "http://localhost:8080/Guinan/slideshareconnector";
+	private final static String LOCATION = "http://localhost:10080/Guinan/slideshareconnector";
 
 	
 	/** API key for Slideshare API */

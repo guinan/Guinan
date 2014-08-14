@@ -1,6 +1,8 @@
 package de.ovgu.wdok.guinan;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
@@ -23,7 +25,7 @@ public class GuinanResult {
 	private String _location;
 
 	/** Array of tags describing the content of the Web resource */
-	private ArrayList<String> original_content_tags;
+	private ArrayList<String> original_content_tags;	
 	
 	
 
@@ -67,6 +69,9 @@ public class GuinanResult {
 	
 	/** constant for the text content type */
 	public static final String RESOURCE_TYPE_TEXT = "text";
+	
+	/** map storing terms from content and comments and their frequencies **/
+	private HashMap<String, Integer> term_frequencies;
 
 	public GuinanResult() {
 		this._location = null;
@@ -77,6 +82,7 @@ public class GuinanResult {
 		this._content = null;
 		this._language = null;
 		this.comments = new ArrayList<String>();
+		this.term_frequencies = new HashMap<String, Integer>();
 	}
 
 	public GuinanResult(String title, String location, ArrayList<String> content_tags,
@@ -93,6 +99,7 @@ public class GuinanResult {
 		this._language = language;
 		this._thumbnail_uri=thumbailuri;
 		this.comments = comments;
+		this.term_frequencies = new HashMap<String, Integer>();
 	}
 
 	public String getLocation() {
@@ -193,6 +200,14 @@ public class GuinanResult {
 
 	public void set_content_tags(ArrayList<String> _content_tags) {
 		this.original_content_tags = _content_tags;
+	}
+	
+	public HashMap<String,Integer> getTerm_frequencies() {
+		return term_frequencies;
+	}
+
+	public void setTerm_frequencies(HashMap<String, Integer> term_frequencies) {
+		this.term_frequencies = term_frequencies;
 	}
 
 	
