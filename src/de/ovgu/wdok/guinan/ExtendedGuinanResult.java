@@ -1,9 +1,15 @@
 package de.ovgu.wdok.guinan;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-public class ExtendedGuinanResult extends GuinanResult {
+import org.tartarus.snowball.EnglishSnowballStemmerFactory;
+import org.tartarus.snowball.util.StemmerException;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
+public class ExtendedGuinanResult extends GuinanClientResult {
 
 	/** name of file where the Web document has been saved to*/
 	private String filename; 
@@ -12,6 +18,13 @@ public class ExtendedGuinanResult extends GuinanResult {
 	private HashMap<Integer,String> wordcount;
 	
 	private int totalWordCount;
+	
+	private HashMap<String,Integer> stems_numbers;
+	
+	public ExtendedGuinanResult(){
+		super();
+		stems_numbers = new HashMap<String,Integer>();
+	}
 
 	public String getFilename() {
 		return filename;
@@ -41,7 +54,7 @@ public class ExtendedGuinanResult extends GuinanResult {
 	
 	public void setContent(String content){
 		//calling original method of superclass
-		this.setContent(content);
+		super.setContent(content);
 		//compute wordcount
 		this.computeWordCount();
 	}
@@ -60,5 +73,38 @@ public class ExtendedGuinanResult extends GuinanResult {
 		//tokenize string
 		StringTokenizer st = new StringTokenizer(this.getContent(), " ");
 		this.setTotalWordCount(st.countTokens());
+	}
+	
+public void  computeWordStemsAndOccurrences(ArrayList<String> tags){
+		
+		for(String tag: tags){
+			try {
+				String base = EnglishSnowballStemmerFactory.getInstance().process(tag);
+				//word stem already in list?
+				if(stems_numbers.containsKey(base)){
+					int curr_val = stems_numbers.get(base);
+					stems_numbers.put(base, curr_val+1);
+				}
+				else{
+					stems_numbers.put(base, 1);
+				}
+			} catch (StemmerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+		}
+	}
+
+	public HashMap<String, Integer> getStems_numbers() {
+		return stems_numbers;
+	}
+
+	public void setStems_numbers(HashMap<String, Integer> stems_numbers) {
+		this.stems_numbers = stems_numbers;
+	}
+	
+	@JsonAnySetter
+	public void handleUnknown(String key, Object value) {
+		// just don't do anything but ignore it
 	}
 }

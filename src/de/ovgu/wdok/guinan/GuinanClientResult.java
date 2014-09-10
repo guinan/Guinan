@@ -1,8 +1,15 @@
 package de.ovgu.wdok.guinan;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import org.tartarus.snowball.EnglishSnowballStemmerFactory;
+import org.tartarus.snowball.ext.porterStemmer;
+import org.tartarus.snowball.util.StemmerException;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 import de.ovgu.wdok.guinan.GuinanResult;
 import de.ovgu.wdok.guinan.graph.GuinanGraph;
@@ -21,14 +28,17 @@ public class GuinanClientResult extends GuinanResult {
 
 	/** Array of tags that have been computed from the content **/
 	private ArrayList<String> additional_tags;
+	/** ArrayList containing content_tags and additional tags**/
 	private ArrayList<String> aggregated_tags;
+	
+	/** ArrayList containing tags that are in both lists **/
 	private ArrayList<String> common_tags;
+	
 	private GuinanGraph ontology_concepts;
-	private GuinanInflector inflector;
+	
 	
 	public GuinanClientResult() {
 		super();
-		this.inflector = new GuinanInflector();
 	}
 
 	public GuinanClientResult(GuinanResult gr) {
@@ -36,7 +46,7 @@ public class GuinanClientResult extends GuinanResult {
 				.getRating(), gr.getContenttype_tags(), gr.getDocumenttype(),
 				gr.getContent(), gr.get_language(), gr.get_thumbnail_uri(), gr
 						.getComments());
-		this.inflector = new GuinanInflector();
+		
 
 	}
 
@@ -47,8 +57,6 @@ public class GuinanClientResult extends GuinanResult {
 			ArrayList<String> comments) {
 		super(title, location, content_tags, rating, contenttype_tags,
 				documenttype, content, language, thumbnailuri, comments);
-		// TODO Auto-generated constructor stub
-		this.inflector = new GuinanInflector();
 	}
 
 	public ArrayList<String> getAdditional_tags() {
@@ -114,17 +122,10 @@ public class GuinanClientResult extends GuinanResult {
 	}
 	
 	/**
-	 * aggregates terms, that are inflections of the same word
-	 * @return ArrayList containing only terms, that are no inflected forms of each other
+	 * aggregates terms, that are inflections of the same word 
+	 * @return HashMap containing only terms, that are no inflected forms of each other, and their number of occurence in the document
 	 */
-	private ArrayList<String> aggregateTagInflections(){
-		//1. create a temp copy of the tag list to work with
-		ArrayList<String> tmptags = (ArrayList<String>)this.getAggregated_tags().clone();
-		for(String tag: tmptags){
-			inflector.query(tag);
-		}
-		return tmptags;
-	}
+	
 
 	public GuinanGraph getOntology_concepts() {
 		return ontology_concepts;
@@ -134,11 +135,14 @@ public class GuinanClientResult extends GuinanResult {
 		this.ontology_concepts = ontology_concepts;
 	}
 
-	public void computeTermFrequency() {
+	/*public void computeTermFrequency() {
 		
-		for(String term : this.aggregateTagInflections()){
+		for(String term : this.getWordStems()){
 			//compute term frequency for content
-			int term_in_content = this.countTermOccurrences(this.getContent(), term);
+			int term_in_content = this.countTermOccurrences(this.g@JsonAnySetter
+	public void handleUnknown(String key, Object value) {
+		// just don't do anything but ignore it
+	}etContent(), term);
 			int term_in_comments = 0;
 			for(String comment: this.getComments()){
 				term_in_comments += this.countTermOccurrences(comment, term);
@@ -164,5 +168,9 @@ public class GuinanClientResult extends GuinanResult {
 		}
 		return count;
 	}
-
+*/
+	@JsonAnySetter
+	public void handleUnknown(String key, Object value) {
+		// just don't do anything but ignore it
+	}
 }
