@@ -482,7 +482,7 @@ public class GuinanMaster {
 			// compute common tagset
 			gcr.setAggregated_tags(gcr.mergeTags());
 			gcr.setCommon_tags(gcr.computeCommonTags());
-			gcr.computeTermFrequency();
+			
 			// gcr.setOntology_concepts(this.buildConceptGraph(
 			// gcr.getCommon_tags(), gcr.get_location()));
 			// System.out.println("ontology_concepts: "+gcr.getOntology_concepts());
