@@ -2,6 +2,7 @@ package de.ovgu.wdok.guinan;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.tartarus.snowball.EnglishSnowballStemmerFactory;
@@ -10,6 +11,8 @@ import org.tartarus.snowball.util.StemmerException;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class ExtendedGuinanResult extends GuinanClientResult {
+	
+	private String query;
 
 	/** name of file where the Web document has been saved to*/
 	private String filename; 
@@ -21,9 +24,21 @@ public class ExtendedGuinanResult extends GuinanClientResult {
 	
 	private HashMap<String,Integer> stems_numbers;
 	
+	private int numberOfuniqueTerms;
+	
+	private HashMap<String,Integer> top_terms;
+	
 	public ExtendedGuinanResult(){
 		super();
 		stems_numbers = new HashMap<String,Integer>();
+	}
+
+	public String getQuery() {
+		return query;
+	}
+
+	public void setQuery(String query) {
+		this.query = query;
 	}
 
 	public String getFilename() {
@@ -43,6 +58,7 @@ public class ExtendedGuinanResult extends GuinanClientResult {
 	}
 	
 	
+	
 	/*public ExtendedGuinanResult(GuinanResult gr){
 		this.set_content_tags(gr.get_content_tags());
 		this.set_language(gr.get_language());
@@ -58,6 +74,14 @@ public class ExtendedGuinanResult extends GuinanClientResult {
 		//compute wordcount
 		this.computeWordCount();
 	}
+	public int getNumberOfUniqueTerms() {
+		return numberOfuniqueTerms;
+	}
+
+	public void setNumberOfUniqueTerms(int uniqueTerms) {
+		this.numberOfuniqueTerms = uniqueTerms;
+	}
+
 	public int getTotalWordCount() {
 		return totalWordCount;
 	}
@@ -66,13 +90,28 @@ public class ExtendedGuinanResult extends GuinanClientResult {
 		this.totalWordCount = totalWordCount;
 	}
 
+	public HashMap<String, Integer> getTop_terms() {
+		return top_terms;
+	}
+
+	public void setTop_terms(HashMap<String, Integer> top_terms) {
+		this.top_terms = top_terms;
+	}
+
 	/**
 	 * for now compute word count for content field. not really the whole document
 	 */
 	private void computeWordCount(){
 		//tokenize string
 		StringTokenizer st = new StringTokenizer(this.getContent(), " ");
-		this.setTotalWordCount(st.countTokens());
+		int wc = st.countTokens();
+		
+		//count tokens in comments
+		for (String c : this.getComments()){
+			st = new StringTokenizer(c, " ");
+			wc+=st.countTokens();
+		}
+		this.setTotalWordCount(wc);
 	}
 	
 public void  computeWordStemsAndOccurrences(ArrayList<String> tags){
@@ -93,7 +132,10 @@ public void  computeWordStemsAndOccurrences(ArrayList<String> tags){
 				e.printStackTrace();
 			} 
 		}
+		this.setNumberOfUniqueTerms(this.getStems_numbers().size());
+		this.computeTopTerms(3);
 	}
+
 
 	public HashMap<String, Integer> getStems_numbers() {
 		return stems_numbers;
@@ -101,6 +143,13 @@ public void  computeWordStemsAndOccurrences(ArrayList<String> tags){
 
 	public void setStems_numbers(HashMap<String, Integer> stems_numbers) {
 		this.stems_numbers = stems_numbers;
+	}
+	
+	public void computeTopTerms(int threshold){
+		for(Map.Entry<String, Integer> entry : this.getStems_numbers().entrySet()){
+			if(entry.getValue().intValue()>= threshold)
+				this.getTop_terms().put(entry.getKey(), entry.getValue());
+		}
 	}
 	
 	@JsonAnySetter
