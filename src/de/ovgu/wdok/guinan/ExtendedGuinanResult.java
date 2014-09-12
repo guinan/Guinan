@@ -31,6 +31,7 @@ public class ExtendedGuinanResult extends GuinanClientResult {
 	public ExtendedGuinanResult(){
 		super();
 		stems_numbers = new HashMap<String,Integer>();
+		top_terms = new HashMap<String,Integer>();
 	}
 
 	public String getQuery() {
