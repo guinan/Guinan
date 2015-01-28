@@ -30,7 +30,7 @@ public class GuinanDeliciousConnector extends GuinanConnector {
 	private final static String SERVICE_NAME = "GuinanDeliciousConnector";
 
 	/** location of DeliciousConnector (URI) */
-	private final static String LOCATION = "http://localhost:10080/Guinan/deliciousconnector";
+	private final static String LOCATION = "http://localhost:10080/Guinan/webapp/deliciousconnector";
 
 	
 

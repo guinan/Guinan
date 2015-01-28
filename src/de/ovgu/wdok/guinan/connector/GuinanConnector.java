@@ -100,7 +100,7 @@ public class GuinanConnector {
 
 	public static URI getBaseURIForMaster() {
 		// TODO put this into central config file
-		return UriBuilder.fromUri("http://localhost:10080/Guinan/GuinanMaster")
+		return UriBuilder.fromUri("http://localhost:10080/Guinan/webapp/GuinanMaster")
 				.build();
 	}
 

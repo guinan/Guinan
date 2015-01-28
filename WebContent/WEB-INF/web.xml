@@ -17,13 +17,20 @@
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
+
+
 	<servlet-mapping>
 		<servlet-name>Jersey REST Service</servlet-name>
-		<url-pattern>/*</url-pattern>
+		<url-pattern>/webapp/*</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Jersey REST Service</servlet-name>
+		<url-pattern>/controlcenter/index.html</url-pattern>
+	</servlet-mapping> 
+	
 	<welcome-file-list>
-	<welcome-file>Guinan</welcome-file>
-	 <welcome-file>/index.html</welcome-file>
+	 <!-- <welcome-file>/controlcenter/index.html</welcome-file> --> 
+	<welcome-file>/index.html</welcome-file>
 	</welcome-file-list>
 	
 	

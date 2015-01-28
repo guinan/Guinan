@@ -48,7 +48,7 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	private final static String SERVICE_NAME = "GuinanStackoverflowConnector";
 
 	/** location of StackoverflowConnector (URI) */
-	private final static String LOCATION = "http://localhost:10080/Guinan/stackoverflowconnector";
+	private final static String LOCATION = "http://localhost:10080/Guinan/webapp/stackoverflowconnector";
 
 	/** WebResource representing the Stackoverflow API endpoint */
 	private WebResource stackoverflowsearchloc;
