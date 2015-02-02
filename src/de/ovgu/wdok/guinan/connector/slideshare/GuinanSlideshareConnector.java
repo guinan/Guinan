@@ -105,7 +105,7 @@ public class GuinanSlideshareConnector extends GuinanConnector {
 
 		Date now = new Date();
 		String ts = Long.toString(now.getTime() / 1000);
-		String hash = DigestUtils.sha1Hex(this.SHARED_SECRET + ts)
+		String hash = DigestUtils.shaHex(this.SHARED_SECRET + ts)
 				.toLowerCase();
 
 		// query the slideshare endpoint
@@ -208,7 +208,7 @@ public class GuinanSlideshareConnector extends GuinanConnector {
 		// compute date and hash for a new query to slideshow API
 		Date now = new Date();
 		String ts = Long.toString(now.getTime() / 1000);
-		String hash = DigestUtils.sha1Hex(this.SHARED_SECRET + ts)
+		String hash = DigestUtils.shaHex(this.SHARED_SECRET + ts)
 				.toLowerCase();
 		URI loc = UriBuilder.fromUri(
 				"https://de.slideshare.net/api/2/get_slideshow").build();
