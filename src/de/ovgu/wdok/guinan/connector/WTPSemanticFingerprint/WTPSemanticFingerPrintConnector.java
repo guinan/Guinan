@@ -21,17 +21,31 @@ import org.graphstream.graph.Node;
 
 import de.ovgu.wdok.guinan.GuinanResult;
 import de.ovgu.wdok.guinan.connector.GuinanConnector;
-import de.ovgu.wdok.guinan.semanticFingerprint.WTPSemanticFingerprintGuinanResult;
 
-@Path("WTPSemanticFingerprint")
+@Path("WTPSemanticFingerprintConnector")
 public class WTPSemanticFingerPrintConnector extends GuinanConnector {
 
 
-	public final static String SERVICE_NAME = "WTPSemanticFingerprint";
+	public final static String SERVICE_NAME = "WTPSemanticFingerprintConnector";
+	
+	/** location of WTPSemanticFingerprint (URI) */
+	private final static String LOCATION = "http://localhost:10080/Guinan/webapp/WTPSemanticFingerprintConnector";
+
+	/**
+	 * @return URI (endpoint) for GuinanWTPSemanticFingerprintConnector
+	 * 
+	 * */
+	private static URI getBaseURIForWTPSemanticFingerprintConnector()
+	{
+		return UriBuilder.fromPath( LOCATION + "/query" ).build();
+	}
+	
+	
 	
 	public WTPSemanticFingerPrintConnector() {
-		super(SERVICE_NAME,  UriBuilder.fromUri( "fgh" + "asd").build());
+		super(SERVICE_NAME,  getBaseURIForWTPSemanticFingerprintConnector());
 		// TODO Auto-generated constructor stub
+//		this.client.addFilter(this.);
 	}
 
 	@GET
