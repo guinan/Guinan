@@ -106,6 +106,12 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 	@Override
 	// initialize question_ids array with size of response list
 	public ArrayList<GuinanResult> query(@QueryParam("q") String query) {
+		
+		// if all else failed, return an empty list
+		return queryTag(query);
+	}
+	@Produces(MediaType.APPLICATION_JSON)
+	public ArrayList<GuinanResult> queryTag(@QueryParam("tag") String query) {
 		// query the stackoverflow API endpoint, passing all needed parameters
 		// like the API key and the actual query
 		// the response will contain the JSON response from the API
@@ -147,7 +153,6 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 			}
 
 		}
-		// if all else failed, return an empty list
 		return new ArrayList<GuinanResult>();
 	}
 

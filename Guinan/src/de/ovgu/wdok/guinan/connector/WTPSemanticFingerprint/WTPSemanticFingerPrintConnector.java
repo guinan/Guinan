@@ -55,6 +55,9 @@ public class WTPSemanticFingerPrintConnector extends GuinanConnector {
 	public ArrayList<GuinanResult> query( @QueryParam( "q" ) String query ){
 		ArrayList<GuinanResult> res = new ArrayList<GuinanResult>();
 		LinkedList<String> keywords = new LinkedList<String>();
+		LinkedList<LinkedList<String>> tmpList = new LinkedList<LinkedList<String>>();
+		WTPSemanticFingerprintGuinanResult result = new WTPSemanticFingerprintGuinanResult(keywords,tmpList);
+		LinkedList<String> relatedWords = new LinkedList<String>();
 		if(query == null)
 			return res;
 		String[] tmp = query.split(",");
@@ -62,21 +65,35 @@ public class WTPSemanticFingerPrintConnector extends GuinanConnector {
 			keywords.add(i,tmp[i]);
 			}
 		WTPGraph g = MainClass.processKeyWords(keywords);
+		int i=0;
 		for(String keyword : keywords){
 			for(Node n : g){
 				if(n.getId().equals(keyword)){
+					System.out.println("			"+n.getId().toString());
 					Iterator<Node> iter = n.getNeighborNodeIterator();
 					while(iter.hasNext()){
 						Node n2 = iter.next();
 						String reString= n2.getId();
-						WTPSemanticFingerprintGuinanResult result = new WTPSemanticFingerprintGuinanResult(keyword,reString);
-						res.add(result);
+						relatedWords.add(reString);
+//						WTPSemanticFingerprintGuinanResult result = new WTPSemanticFingerprintGuinanResult(keywords,reString);
+//						res.add(result);
 					}
+					result.addRelatedWords(i, relatedWords);
+					i++;
 				}
 			}
 			
 		}
-		
+		/*
+		 * Only one GuinanResult
+		 * one keyword has X many related words 
+		 * related words can be other keywords
+		 * so for every keyword there is a list of related words
+		 * */
+		System.out.println(result.toString());
+		res.add(result);
+//		g.display();
+		System.out.println(res.toString());
 		return res;
 	}
 	/*

@@ -1,13 +1,15 @@
 package de.ovgu.wdok.guinan.connector.WTPSemanticFingerprint;
 
+import java.util.LinkedList;
+
 import de.ovgu.wdok.guinan.GuinanResult;
 
 public class WTPSemanticFingerprintGuinanResult extends GuinanResult {
-	String keyWord;
-	String relatedKeyword;
+	LinkedList<String>keyWord;
+	LinkedList<LinkedList<String>> relatedKeyword;
 	
 
-	public WTPSemanticFingerprintGuinanResult (String keyword, String relatedKeyword)
+	public WTPSemanticFingerprintGuinanResult (LinkedList<String> keyword, LinkedList<LinkedList<String>> relatedKeyword)
 	{
 		super();
 		this.keyWord = keyword;
@@ -15,22 +17,27 @@ public class WTPSemanticFingerprintGuinanResult extends GuinanResult {
 	}
 
 
-	public String getKeyWord() {
+	public LinkedList<String> getKeyWord() {
 		return keyWord;
 	}
 
-
-	public void setKeyWord(String keyWord) {
+	
+	public void setKeyWord(LinkedList<String> keyWord) {
 		this.keyWord = keyWord;
 	}
 
 
-	public String getRelatedKeyword() {
+	public LinkedList<LinkedList<String>> getRelatedKeyword() {
 		return relatedKeyword;
 	}
 
 
-	public void setRelatedKeyword(String relatedKeyword) {
+	public void setRelatedKeyword(LinkedList<LinkedList<String>> relatedKeyword) {
 		this.relatedKeyword = relatedKeyword;
+	}
+	
+	
+	public void addRelatedWords(int i, LinkedList<String> relatedWords){
+		relatedKeyword.add(relatedWords);
 	}
 }
