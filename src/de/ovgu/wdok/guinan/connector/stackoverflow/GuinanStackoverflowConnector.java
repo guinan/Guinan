@@ -110,6 +110,7 @@ public class GuinanStackoverflowConnector extends GuinanConnector {
 		// if all else failed, return an empty list
 		return queryTag(query);
 	}
+	
 	@Produces(MediaType.APPLICATION_JSON)
 	public ArrayList<GuinanResult> queryTag(@QueryParam("tag") String query) {
 		// query the stackoverflow API endpoint, passing all needed parameters
