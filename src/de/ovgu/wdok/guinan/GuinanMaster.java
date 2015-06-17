@@ -1,11 +1,7 @@
 package de.ovgu.wdok.guinan;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -534,45 +530,7 @@ public class GuinanMaster {
 	 * return conceptGraph; }
 	 */
 
-	private GuinanGraph buildConceptGraph(ArrayList<String> common_tags,
-			String id) {
-		System.out.println("Trying to build concept graph");
-		GuinanGraph conceptGraph = new GuinanGraph(id);
-		for (String tag : common_tags) {
-			for (GuinanOntologyConnector goc : this
-					.getRegistered_ontology_connectors()) {
-				try {
-					String json_res = this.client.resource(goc.getLocation())
-							.queryParam("q", tag)
-							.accept(MediaType.APPLICATION_JSON)
-							.get(String.class);
-
-					// after this was successfull, convert the json response
-					// (basically
-					// a string) into plain old java objects (deserializing)
-					ArrayList<GuinanOntologyResult> ores = GuinanMaster
-							.convertJSONtoGraph(json_res);
-					if (ores != null) {
-						// System.out.println("**************# of onto results: "
-						// + ores.size() + "*************");
-						for (GuinanOntologyResult or : ores) {
-
-							if (or.getLabel() != null) {
-
-								conceptGraph.addNode(new GuinanNode(or
-										.getLabel()));
-							}
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-
-		}
-		return conceptGraph;
-	}
-
+	
 	public static ArrayList<GuinanOntologyResult> convertJSONtoGraph(
 			String json_response) {
 
