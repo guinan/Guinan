@@ -14,12 +14,12 @@ import java.util.Map.Entry;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import com.sun.jersey.api.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
+
+import com.sun.jersey.api.client.Client;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -77,11 +77,17 @@ public class SFPGeneratorforDoc {
 		for(String term : topterms){
 			query.add("q", term);
 		}
+		String xml_res="";
 		
-		String xml_res = this.client.resource(sfpgenloc).queryParams(query).accept(MediaType.TEXT_XML)
-				.get(String.class);
+		try{
+			xml_res = this.client.resource(sfpgenloc).queryParams(query).accept(MediaType.TEXT_XML)
+						.get(String.class);
+		}
+		catch(Error e) {
+			e.printStackTrace();
+		}
 		
-		System.out.println(topterms.toString());
+		System.out.println("*****************Answer from service: "+xml_res);
 		return xml_res;
 	}
 
@@ -104,12 +110,12 @@ public class SFPGeneratorforDoc {
 		}
 		//order map by descending number of occurrences of terms
 		Map<String, Integer> sortedMapDesc = sortByComparator(stems_occ, false);
-        printMap(sortedMapDesc);
+       // printMap(sortedMapDesc);
         //we want only the keys which are the terms itself
         for(Entry <String, Integer> entry : sortedMapDesc.entrySet()){
         	result.add(entry.getKey());
         }
-        System.out.println(result.toString());
+        //System.out.println(result.toString());
         ArrayList<String> retlist = new ArrayList<String>(result.subList(0, maxTermCount));
 		return  retlist;
 	}
