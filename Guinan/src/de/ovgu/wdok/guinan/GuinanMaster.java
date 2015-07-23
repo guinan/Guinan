@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -38,8 +39,6 @@ import de.ovgu.wdok.guinan.connector.delicious.GuinanDeliciousConnector;
 import de.ovgu.wdok.guinan.connector.slideshare.GuinanSlideshareConnector;
 import de.ovgu.wdok.guinan.connector.stackoverflow.GuinanStackoverflowConnector;
 import de.ovgu.wdok.guinan.connector.vimeo.GuinanVimeoConnector;
-import de.ovgu.wdok.guinan.graph.GuinanGraph;
-import de.ovgu.wdok.guinan.graph.GuinanNode;
 import de.ovgu.wdok.guinan.nlp.KeywordExtractor;
 import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 

@@ -30,36 +30,63 @@ import dbpedia.BreadthFirstSearch;
 import dbpedia.BreadthFirstSearch.ResultSet;
 import dbpedia.KeyWordSearch;
 import dbpedia.KeyWordSearch.SearchResult;
+
 //import graph.GraphCleaner.Path;
 
 @Path("SFP")
 public class GuinanIterativeSFPGenerator {
 
 	private WTPGraph graph;
-	public static final int maxSearchResults = 10;
-	public static final int maxSearchDepth = 3;
+	public static int maxSearchResults = 10;
+	public static int maxSearchDepth = 3;
 	// Initial cleaning of the graph
-	public static final int maxPathLength = maxSearchDepth;
-	public static final int maxPathExtensionLength = 2;
+	public static int maxPathLength = maxSearchDepth;
+	public static int maxPathExtensionLength = 2;
 	// Heuristics
-	public static final int numRelevantNodesFilter = 10;
-	public static final int minSupportNodesFilter = 5;
+	public static int numRelevantNodesFilter = 10;
+	public static int minSupportNodesFilter = 5;
 
 	@GET
 	@Path("/genSFP")
 	@Produces(MediaType.TEXT_XML)
 	public String genSFP(@Context UriInfo info) {
 		// convert string to linked list with strings
-		//LinkedList<String> keywords = new LinkedList<String>(
-			//	Arrays.asList(query));
+		// LinkedList<String> keywords = new LinkedList<String>(
+		// Arrays.asList(query));
 		List<String> keywords = info.getQueryParameters().get("q");
-		/*LinkedList <String> keywords = new LinkedList<String>();
-		keywords.add("haskell");
-		keywords.add("higher order function");
-		keywords.add("map");
-		keywords.add("functional");*/
-		//TODO split keywords
-		System.out.println(keywords);
+		// get other params
+		if (info.getQueryParameters().containsKey("maxSearchResults")) {
+			String maxSearchR = info.getQueryParameters()
+					.get("maxSearchResults").get(0);
+			if (maxSearchR != null)
+				maxSearchResults = Integer.parseInt(maxSearchR);
+		}
+		if (info.getQueryParameters().containsKey("maxSearchDepth")) {
+			String maxSearchD = info.getQueryParameters().get("maxSearchDepth")
+					.get(0);
+			if (maxSearchD != null)
+				maxSearchDepth = Integer.parseInt(maxSearchD);
+		}
+		if (info.getQueryParameters().containsKey("maxPathLength")) {
+			String maxPathL = info.getQueryParameters().get("maxPathLength")
+					.get(0);
+			if (maxPathL != null)
+				maxPathLength = Integer.parseInt(maxPathL);
+		}
+		if (info.getQueryParameters().containsKey("numRelevantNodes")) {
+			String numRelNodes = info.getQueryParameters()
+					.get("numRelevantNodes").get(0);
+			if (numRelNodes != null)
+				numRelevantNodesFilter = Integer.parseInt(numRelNodes);
+		}
+
+		/*
+		 * LinkedList <String> keywords = new LinkedList<String>();
+		 * keywords.add("haskell"); keywords.add("higher order function");
+		 * keywords.add("map"); keywords.add("functional");
+		 */
+		// TODO split keywords
+		System.out.println("keywords from uri params: " + keywords);
 		// create initial nodes for the kw
 
 		// map for the semantic concepts found in the ontology and their
@@ -69,7 +96,7 @@ public class GuinanIterativeSFPGenerator {
 		KeyWordSearch s = new KeyWordSearch();
 		List<SearchResult> res = s.search(keywords, maxSearchResults,
 				correspondingKeywords);
-		System.out.println(res);
+		System.out.println("Resultlist from KW search: " + res);
 		List<String> request = KeyWordSearch.toUriList(res);
 		System.out.println("Starting BFS...");
 		BreadthFirstSearch lc = new BreadthFirstSearch();
@@ -106,13 +133,13 @@ public class GuinanIterativeSFPGenerator {
 		 * Filters all Nodes that have paths to other Nodes which correspond to
 		 * a different keyword
 		 */
-		heuristic.filterInterconntection(graph, paths, correspondingKeywords);
+		//heuristic.filterInterconntection(graph, paths, correspondingKeywords);
 
 		/**
 		 * Filters the n Nodes which occur most frequently in the paths
 		 */
-		 heuristic.filterNMostFrequentlyOccuring(graph, paths,
-		 numRelevantNodesFilter, correspondingKeywords);
+		heuristic.filterNMostFrequentlyOccuring(graph, paths,
+				numRelevantNodesFilter, correspondingKeywords);
 
 		/**
 		 * Selects the cluster which corresponds to the most different keywords
@@ -128,43 +155,40 @@ public class GuinanIterativeSFPGenerator {
 		/**
 		 * Selects the cluster whose nodes occur most frequently in the paths
 		 */
-	//	ArrayList<ArrayList<String>> graph = new ArrayList<ArrayString>();
-		//convert WTP graph to RDF
+		// ArrayList<ArrayList<String>> graph = new ArrayList<ArrayString>();
+		// convert WTP graph to RDF
 		Model rdfgraph = WTPGraph.getRDFGraph(graph);
 		rdfgraph.write(System.out);
-		/*ObjectMapper mapper = new ObjectMapper();
-	
-		
-		try {
-			return makeCORS(Response.status(Status.OK).entity(mapper.writeValueAsString(rdfgraph.write(System.out))), "");
-		} catch (JsonGenerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			
-		}
-		return makeCORS(Response.status(Status.OK), "");*/
-		
-		OutputStream output = new OutputStream()
-	    {
-	        private StringBuilder string = new StringBuilder();
-	        @Override
-	        public void write(int b) throws IOException {
-	            this.string.append((char) b );
-	        }
-	        public String toString(){
-	            return this.string.toString();
-	        }
-	    };
+		/*
+		 * ObjectMapper mapper = new ObjectMapper();
+		 * 
+		 * 
+		 * try { return
+		 * makeCORS(Response.status(Status.OK).entity(mapper.writeValueAsString
+		 * (rdfgraph.write(System.out))), ""); } catch (JsonGenerationException
+		 * e) { // TODO Auto-generated catch block e.printStackTrace(); } catch
+		 * (JsonMappingException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); } catch (IOException e) { // TODO Auto-generated
+		 * catch block e.printStackTrace();
+		 * 
+		 * } return makeCORS(Response.status(Status.OK), "");
+		 */
+
+		OutputStream output = new OutputStream() {
+			private StringBuilder string = new StringBuilder();
+
+			@Override
+			public void write(int b) throws IOException {
+				this.string.append((char) b);
+			}
+
+			public String toString() {
+				return this.string.toString();
+			}
+		};
 		rdfgraph.write((OutputStream) output);
 		return output.toString();
 	}
-	
 
 	private Response makeCORS(ResponseBuilder req, String returnMethod) {
 		ResponseBuilder rb = req.header("Access-Control-Allow-Origin", "*")
@@ -179,17 +203,17 @@ public class GuinanIterativeSFPGenerator {
 		return rb.build();
 
 	}
+
 	class StringOutputStream extends OutputStream {
 
-		  StringBuilder mBuf;
+		StringBuilder mBuf;
 
-		  public void write(int bytes) throws IOException {
-		    mBuf.append((char) bytes);
-		  }
-
-		  public String getString() {
-		    return mBuf.toString();
-		  }
+		public void write(int bytes) throws IOException {
+			mBuf.append((char) bytes);
 		}
-}
 
+		public String getString() {
+			return mBuf.toString();
+		}
+	}
+}
