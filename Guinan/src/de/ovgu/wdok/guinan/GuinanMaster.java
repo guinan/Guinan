@@ -452,10 +452,15 @@ public class GuinanMaster {
 		for (Future<ArrayList<GuinanClientResult>> f : futurelist) {
 			try {
 				resultsfromconnectors.addAll(f.get());
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (InterruptedException e) {
 				System.err
 						.println("Could not fetch the result from worker thread");
 				return makeCORS(Response.status(Status.SERVICE_UNAVAILABLE));
+			}
+			catch(ExecutionException e){
+				System.err
+				.println("Could not fetch the result from worker thread");
+		return makeCORS(Response.status(Status.SERVICE_UNAVAILABLE));
 			}
 		}
 		for (GuinanResult gr : resultsfromconnectors) {
