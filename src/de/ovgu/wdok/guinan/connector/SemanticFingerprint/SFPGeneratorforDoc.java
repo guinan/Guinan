@@ -80,8 +80,7 @@ public class SFPGeneratorforDoc {
 		String xml_res="";
 		
 		try{
-			xml_res = this.client.resource(sfpgenloc).queryParams(query).accept(MediaType.TEXT_XML)
-						.get(String.class);
+			xml_res = this.client.resource(sfpgenloc).queryParams(query).get(String.class);
 		}
 		catch(Error e) {
 			e.printStackTrace();

@@ -8,19 +8,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -38,8 +39,8 @@ import dbpedia.KeyWordSearch.SearchResult;
 @Path("SFP")
 public class GuinanIterativeSFPGenerator {
 
-	private HashMap<UUID,SFPGenJob> jobqueue = new HashMap<UUID, SFPGenJob>();
-	private HashMap<UUID, String> sfplist = new HashMap<UUID, String>();
+	private ConcurrentHashMap<UUID, SFPGenJob> jobqueue = new ConcurrentHashMap<UUID, SFPGenJob>();
+	private ConcurrentHashMap<UUID, String> sfplist = new ConcurrentHashMap<UUID, String>();
 	private WTPGraph graph;
 	public static int maxSearchResults = 10;
 	public static int maxSearchDepth = 3;
@@ -52,12 +53,12 @@ public class GuinanIterativeSFPGenerator {
 
 	@GET
 	@Path("/genSFP")
-	//@Produces(MediaType.TEXT_XML)
+	// @Produces(MediaType.TEXT_XML)
 	public Response genSFP(@Context UriInfo info) {
 		// convert string to linked list with strings
 		// LinkedList<String> keywords = new LinkedList<String>(
 		// Arrays.asList(query));
-		List<String> keywords = info.getQueryParameters().get("q");
+		final List<String> keywords = info.getQueryParameters().get("q");
 		// get other params
 		if (info.getQueryParameters().containsKey("maxSearchResults")) {
 			String maxSearchR = info.getQueryParameters()
@@ -92,23 +93,30 @@ public class GuinanIterativeSFPGenerator {
 		// TODO split keywords
 		System.out.println("keywords from uri params: " + keywords);
 		// create initial nodes for the kw
+
+		final UUID jobID = UUID.randomUUID();
+
 		
-		
-		UUID jobID = UUID.randomUUID();
-		
-		//TODO trigger SFP generation in new thread
-		//_genSFPinQueue(keywords, jobID);
-		
+
 		URI jobQueueUri;
 		try {
-			jobQueueUri = new URI("SFP/jobQueue/"+jobID.toString());
-			return Response.status(202).location(jobQueueUri).entity("Request received. Processing .... check back at "+jobQueueUri.toASCIIString()).build();
+			jobQueueUri = new URI("SFP/jobQueue/" + jobID.toString());
+			return Response
+					.status(202)
+					.location(jobQueueUri)
+					.entity("Request received. Processing .... check back at "
+							+ jobQueueUri.toASCIIString()).build();
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//if something went wrong send an error return code		
+		// TODO trigger SFP generation in new thread
+				Executors.newSingleThreadExecutor().submit(new Runnable(){
+					public void run() {
+						_genSFPinQueue(keywords, jobID);
+					}
+				});
+		// if something went wrong send an error return code
 		return Response.serverError().build();
 	}
 
@@ -126,124 +134,161 @@ public class GuinanIterativeSFPGenerator {
 
 	}
 
-	private void _genSFPinQueue(List<String> keywords, UUID jobID){
-		//create jobqueue entry
-		this.jobqueue.put(jobID, new SFPGenJob("PENDING", new Date().getTime()));
+	private void _genSFPinQueue(List<String> keywords, UUID jobID) {
+		// create timestamp
+		Date now = Calendar.getInstance().getTime();
+		// create jobqueue entry
+		this.jobqueue.put(jobID, new SFPGenJob(SFPGenJob.PROCESSING, now));
+		System.out.println(this.jobqueue.toString());
 		// map for the semantic concepts found in the ontology and their
-				// corresponding keyword, used for searching them
-				Map<String, String> correspondingKeywords = new HashMap<String, String>();
+		// corresponding keyword, used for searching them
+		Map<String, String> correspondingKeywords = new HashMap<String, String>();
 
-				KeyWordSearch s = new KeyWordSearch();
-				List<SearchResult> res = s.search(keywords, maxSearchResults,
-						correspondingKeywords);
-				System.out.println("Resultlist from KW search: " + res);
-				List<String> request = KeyWordSearch.toUriList(res);
-				System.out.println("Starting BFS...");
-				BreadthFirstSearch lc = new BreadthFirstSearch();
-				ResultSet result = lc.getConnections(request, maxSearchDepth);
-				System.out.println("...Done");
+		KeyWordSearch s = new KeyWordSearch();
+		List<SearchResult> res = s.search(keywords, maxSearchResults,
+				correspondingKeywords);
+		System.out.println("Resultlist from KW search: " + res);
+		List<String> request = KeyWordSearch.toUriList(res);
+		System.out.println("Starting BFS...");
+		BreadthFirstSearch lc = new BreadthFirstSearch();
+		ResultSet result = lc.getConnections(request, maxSearchDepth);
+		System.out.println("...Done");
 
-				// -- 2) create the graph
-				System.out.println("Creating the initial graph...");
-				WTPGraph graph = WTPGraph.createFromResultSet(result,
-						"Semantic Fingerprint");
-				System.out.println("...Done");
+		// -- 2) create the graph
+		System.out.println("Creating the initial graph...");
+		WTPGraph graph = WTPGraph.createFromResultSet(result,
+				"Semantic Fingerprint");
+		System.out.println("...Done");
 
-				// -- 3) remove specific edges
-				// graph.removeEdgesByName("ject");
-				// graph.removeEdgesByName("paradigm");
-				// graph.removeEdgesByName("influencedBy");
-				// graph.removeEdgesByName("influenced");
-				// graph.removeEdgesByName("typing");
-				// graph.removeEdgesByName("license");
+		// -- 3) remove specific edges
+		// graph.removeEdgesByName("ject");
+		// graph.removeEdgesByName("paradigm");
+		// graph.removeEdgesByName("influencedBy");
+		// graph.removeEdgesByName("influenced");
+		// graph.removeEdgesByName("typing");
+		// graph.removeEdgesByName("license");
 
-				// -- 4) tidy graph
-				System.out.print("Tidying graph (" + graph.getNodeCount() + " Nodes, "
-						+ graph.getEdgeCount() + " Edges) ...");
-				GraphCleaner c = new GraphCleaner(graph.getGraph(), result.requestNodes);
-				LinkedList<graph.GraphCleaner.Path> paths = c.clean(maxPathLength,
-						maxPathExtensionLength);
-				System.out.println(" Done (" + graph.getNodeCount() + " Nodes, "
-						+ graph.getEdgeCount() + " Edges, " + paths.size() + " Paths)");
+		// -- 4) tidy graph
+		System.out.print("Tidying graph (" + graph.getNodeCount() + " Nodes, "
+				+ graph.getEdgeCount() + " Edges) ...");
+		GraphCleaner c = new GraphCleaner(graph.getGraph(), result.requestNodes);
+		LinkedList<graph.GraphCleaner.Path> paths = c.clean(maxPathLength,
+				maxPathExtensionLength);
+		System.out.println(" Done (" + graph.getNodeCount() + " Nodes, "
+				+ graph.getEdgeCount() + " Edges, " + paths.size() + " Paths)");
 
-				// --4.2) heuristics finger print selection
-				InterConceptConntecting heuristic = new InterConceptConntecting();
+		// --4.2) heuristics finger print selection
+		InterConceptConntecting heuristic = new InterConceptConntecting();
 
-				/**
-				 * Filters all Nodes that have paths to other Nodes which correspond to
-				 * a different keyword
-				 */
-				//heuristic.filterInterconntection(graph, paths, correspondingKeywords);
+		/**
+		 * Filters all Nodes that have paths to other Nodes which correspond to
+		 * a different keyword
+		 */
+		// heuristic.filterInterconntection(graph, paths,
+		// correspondingKeywords);
 
-				/**
-				 * Filters the n Nodes which occur most frequently in the paths
-				 */
-				heuristic.filterNMostFrequentlyOccuring(graph, paths,
-						numRelevantNodesFilter, correspondingKeywords);
+		/**
+		 * Filters the n Nodes which occur most frequently in the paths
+		 */
+		heuristic.filterNMostFrequentlyOccuring(graph, paths,
+				numRelevantNodesFilter, correspondingKeywords);
 
-				/**
-				 * Selects the cluster which corresponds to the most different keywords
-				 */
-				heuristic.filterClusterByInterconnectionLevel(graph,
-						correspondingKeywords);
+		/**
+		 * Selects the cluster which corresponds to the most different keywords
+		 */
+		heuristic.filterClusterByInterconnectionLevel(graph,
+				correspondingKeywords);
 
-				/**
-				 * Selects the biggest cluster
-				 */
-				heuristic.filterClusterBySize(graph);
+		/**
+		 * Selects the biggest cluster
+		 */
+		heuristic.filterClusterBySize(graph);
 
-				/**
-				 * Selects the cluster whose nodes occur most frequently in the paths
-				 */
-				// ArrayList<ArrayList<String>> graph = new ArrayList<ArrayString>();
-				// convert WTP graph to RDF
-				Model rdfgraph = WTPGraph.getRDFGraph(graph);
-				rdfgraph.write(System.out);
-				/*
-				 * ObjectMapper mapper = new ObjectMapper();
-				 * 
-				 * 
-				 * try { return
-				 * makeCORS(Response.status(Status.OK).entity(mapper.writeValueAsString
-				 * (rdfgraph.write(System.out))), ""); } catch (JsonGenerationException
-				 * e) { // TODO Auto-generated catch block e.printStackTrace(); } catch
-				 * (JsonMappingException e) { // TODO Auto-generated catch block
-				 * e.printStackTrace(); } catch (IOException e) { // TODO Auto-generated
-				 * catch block e.printStackTrace();
-				 * 
-				 * } return makeCORS(Response.status(Status.OK), "");
-				 */
+		/**
+		 * Selects the cluster whose nodes occur most frequently in the paths
+		 */
+		// ArrayList<ArrayList<String>> graph = new ArrayList<ArrayString>();
+		// convert WTP graph to RDF
+		Model rdfgraph = WTPGraph.getRDFGraph(graph);
+		rdfgraph.write(System.out);
+		/*
+		 * ObjectMapper mapper = new ObjectMapper();
+		 * 
+		 * 
+		 * try { return
+		 * makeCORS(Response.status(Status.OK).entity(mapper.writeValueAsString
+		 * (rdfgraph.write(System.out))), ""); } catch (JsonGenerationException
+		 * e) { // TODO Auto-generated catch block e.printStackTrace(); } catch
+		 * (JsonMappingException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); } catch (IOException e) { // TODO Auto-generated
+		 * catch block e.printStackTrace();
+		 * 
+		 * } return makeCORS(Response.status(Status.OK), "");
+		 */
 
-				OutputStream output = new OutputStream() {
-					private StringBuilder string = new StringBuilder();
+		OutputStream output = new OutputStream() {
+			private StringBuilder string = new StringBuilder();
 
-					@Override
-					public void write(int b) throws IOException {
-						this.string.append((char) b);
-					}
+			@Override
+			public void write(int b) throws IOException {
+				this.string.append((char) b);
+			}
 
-					public String toString() {
-						return this.string.toString();
-					}
-				};
-				rdfgraph.write((OutputStream) output);
-				//
-				this.jobqueue.put(jobID, output.toString());
+			public String toString() {
+				return this.string.toString();
+			}
+		};
+		rdfgraph.write((OutputStream) output);
+		// put result in sfplist
+		this.sfplist.put(jobID, output.toString());
+
+		// get the job object of current jobid and update it
+		SFPGenJob currJob = this.jobqueue.get(jobID);
+		currJob.updateStatus(SFPGenJob.FINISHED);
+		// update timestamp
+		now = Calendar.getInstance().getTime();
+		currJob.updateTimestamp(now);
+		this.jobqueue.put(jobID, currJob);
 	}
-	
-	//TODO
+
+	// TODO
 	@GET
-	@Path("/jopbqueue/{jobID}")
-	//@Produces(MediaType.TEXT_XML)
-	public Response checkJobQueue(@PathParam("jobID") int jobID) {
-		//if job is not finished yet and jobID has no SFP value in hashmap, return 200
-		
-		return Response.status(Status.OK).entity("Still processing - please check back later.").build();
-		
-		//if job is finished and SFP has been created
+	@Path("/jobQueue/{jobID}")
+	// @Produces(MediaType.TEXT_XML)
+	public Response checkJobQueue(@PathParam("jobID") String jobID) {
+		// does job exist?
+		if (this.jobqueue.containsKey(UUID.fromString(jobID))) {
+			System.out.println("Found job ID");
+			// if job is not finished yet return 200
+			if (this.jobqueue.get(jobID).getStatus() == SFPGenJob.PROCESSING)
+				return Response.status(Status.OK)
+						.entity("Still processing - please check back later.")
+						.build();
+			// if job is finished and SFP has been created
+			else {
+				// return path to SFP resource
+				URI sfp_uri;
+				try {
+					sfp_uri = new URI("sfp/" + jobID);
+					// update jobQueue
+					SFPGenJob currjob = this.jobqueue.get(jobID);
+					currjob.updateStatus(SFPGenJob.GONE);
+					this.jobqueue.put(UUID.fromString(jobID), currjob);
+					return Response.status(Status.SEE_OTHER).location(sfp_uri)
+							.build();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return Response.serverError().build();
+
+			}
+		}
+		else
+			return Response.serverError().entity("No such job ID").build();
+
 	}
-	
+
 	/***********************************************************************************************/
 
 }
-
