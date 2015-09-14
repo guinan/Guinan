@@ -1,6 +1,7 @@
 package de.ovgu.wdok.guinan;
 
 import filterheuristics.InterConceptConntecting;
+
 import graph.GraphCleaner;
 import graph.WTPGraph;
 
@@ -16,12 +17,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+//import javax.persistence.Entity;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -39,7 +44,7 @@ import dbpedia.KeyWordSearch.SearchResult;
 @Path("SFP")
 public class GuinanIterativeSFPGenerator {
 
-	private ConcurrentHashMap<UUID, SFPGenJob> jobqueue = new ConcurrentHashMap<UUID, SFPGenJob>();
+	private static volatile ConcurrentHashMap<UUID, SFPGenJob> jobqueue = new ConcurrentHashMap<UUID, SFPGenJob>();
 	private ConcurrentHashMap<UUID, String> sfplist = new ConcurrentHashMap<UUID, String>();
 	private WTPGraph graph;
 	public static int maxSearchResults = 10;
@@ -50,10 +55,11 @@ public class GuinanIterativeSFPGenerator {
 	// Heuristics
 	public static int numRelevantNodesFilter = 10;
 	public static int minSupportNodesFilter = 5;
+	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	@GET
 	@Path("/genSFP")
-	// @Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.TEXT_HTML)
 	public Response genSFP(@Context UriInfo info) {
 		// convert string to linked list with strings
 		// LinkedList<String> keywords = new LinkedList<String>(
@@ -95,27 +101,26 @@ public class GuinanIterativeSFPGenerator {
 		// create initial nodes for the kw
 
 		final UUID jobID = UUID.randomUUID();
-
-		
-
+		// TODO trigger SFP generation in new thread
+		executor.execute(new Runnable() {
+			public void run() {
+				_genSFPinQueue(keywords, jobID);
+			}
+		});
 		URI jobQueueUri;
 		try {
 			jobQueueUri = new URI("SFP/jobQueue/" + jobID.toString());
 			return Response
 					.status(202)
 					.location(jobQueueUri)
-					.entity("Request received. Processing .... check back at "
-							+ jobQueueUri.toASCIIString()).build();
+					.entity("<html>Request received. Processing .... check back later @ <a href=\""+info.getBaseUri()+
+							 jobQueueUri.toASCIIString()+"\">"+jobQueueUri.toASCIIString()+"</a></html>").build();
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// TODO trigger SFP generation in new thread
-				Executors.newSingleThreadExecutor().submit(new Runnable(){
-					public void run() {
-						_genSFPinQueue(keywords, jobID);
-					}
-				});
+	
+		
 		// if something went wrong send an error return code
 		return Response.serverError().build();
 	}
@@ -138,8 +143,9 @@ public class GuinanIterativeSFPGenerator {
 		// create timestamp
 		Date now = Calendar.getInstance().getTime();
 		// create jobqueue entry
-		this.jobqueue.put(jobID, new SFPGenJob(SFPGenJob.PROCESSING, now));
-		System.out.println(this.jobqueue.toString());
+		jobqueue.put(jobID, new SFPGenJob(SFPGenJob.PROCESSING, now));
+		System.out.println("[_genSFPinQueue] size of job queue: "+jobqueue.size());
+		System.out.println("Job accessible @ "+this.jobqueue.toString());
 		// map for the semantic concepts found in the ontology and their
 		// corresponding keyword, used for searching them
 		Map<String, String> correspondingKeywords = new HashMap<String, String>();
@@ -257,10 +263,12 @@ public class GuinanIterativeSFPGenerator {
 	// @Produces(MediaType.TEXT_XML)
 	public Response checkJobQueue(@PathParam("jobID") String jobID) {
 		// does job exist?
-		if (this.jobqueue.containsKey(UUID.fromString(jobID))) {
+		System.out.println("[checkJobQueue] queue length = "+jobqueue.size());
+		System.out.println("[checkJobQueue] jobID = "+jobID);
+		if (jobqueue.containsKey(UUID.fromString(jobID))) {
 			System.out.println("Found job ID");
 			// if job is not finished yet return 200
-			if (this.jobqueue.get(jobID).getStatus() == SFPGenJob.PROCESSING)
+			if (jobqueue.get(UUID.fromString(jobID)).getStatus() == SFPGenJob.PROCESSING)
 				return Response.status(Status.OK)
 						.entity("Still processing - please check back later.")
 						.build();
@@ -269,11 +277,11 @@ public class GuinanIterativeSFPGenerator {
 				// return path to SFP resource
 				URI sfp_uri;
 				try {
-					sfp_uri = new URI("sfp/" + jobID);
+					sfp_uri = new URI("SFP/sfplist/" + jobID);
 					// update jobQueue
-					SFPGenJob currjob = this.jobqueue.get(jobID);
+					SFPGenJob currjob = jobqueue.get(UUID.fromString(jobID));
 					currjob.updateStatus(SFPGenJob.GONE);
-					this.jobqueue.put(UUID.fromString(jobID), currjob);
+					jobqueue.put(UUID.fromString(jobID), currjob);
 					return Response.status(Status.SEE_OTHER).location(sfp_uri)
 							.build();
 				} catch (URISyntaxException e) {
@@ -283,12 +291,20 @@ public class GuinanIterativeSFPGenerator {
 				return Response.serverError().build();
 
 			}
-		}
-		else
+		} else
 			return Response.serverError().entity("No such job ID").build();
 
 	}
-
+	@GET
+	@Path("/sfplist/{jobID}")
+	@Produces(MediaType.TEXT_XML)
+	public Response fetchSFP(@PathParam("jobID") String jobID){
+		if(sfplist.containsKey(UUID.fromString(jobID))){
+			return Response.status(Status.OK).entity(sfplist.get(UUID.fromString(jobID))).build();
+		}
+		else
+			return Response.status(Status.NOT_FOUND).entity("No such SFP ID").build();
+	}
 	/***********************************************************************************************/
 
 }
