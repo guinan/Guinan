@@ -45,7 +45,7 @@ import dbpedia.KeyWordSearch.SearchResult;
 public class GuinanIterativeSFPGenerator {
 
 	private static volatile ConcurrentHashMap<UUID, SFPGenJob> jobqueue = new ConcurrentHashMap<UUID, SFPGenJob>();
-	private ConcurrentHashMap<UUID, String> sfplist = new ConcurrentHashMap<UUID, String>();
+	private static volatile ConcurrentHashMap<UUID, String> sfplist = new ConcurrentHashMap<UUID, String>();
 	private WTPGraph graph;
 	public static int maxSearchResults = 10;
 	public static int maxSearchDepth = 3;
