@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -31,15 +32,19 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import scala.Enumeration;
+
 import com.hp.hpl.jena.rdf.model.Model;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.WebResource;
 
 import dbpedia.BreadthFirstSearch;
 import dbpedia.BreadthFirstSearch.ResultSet;
 import dbpedia.KeyWordSearch;
 import dbpedia.KeyWordSearch.SearchResult;
 
-//import graph.GraphCleaner.Path;
 
 @Path("SFP")
 public class GuinanIterativeSFPGenerator {
@@ -101,7 +106,7 @@ public class GuinanIterativeSFPGenerator {
 		// create initial nodes for the kw
 
 		final UUID jobID = UUID.randomUUID();
-		// TODO trigger SFP generation in new thread
+		// trigger SFP generation in new thread
 		executor.execute(new Runnable() {
 			public void run() {
 				_genSFPinQueue(keywords, jobID);
@@ -307,4 +312,38 @@ public class GuinanIterativeSFPGenerator {
 	}
 	/***********************************************************************************************/
 
+	@GET
+	@Path("/testSim")
+	public Response testSim(){
+		
+		//try to get the last two SFPs from the sfplist
+		java.util.Enumeration<String> enu = sfplist.elements();
+		if (Collections.list(enu).size() < 2)
+			return Response.status(Status.NOT_FOUND).entity("Less than two fingerprints in sfplist ... nothing to compare").build();
+		String sfp1="";
+		String sfp2="";
+		try{
+			sfp1 = enu.nextElement();
+			sfp2 = enu.nextElement();
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		Client client = Client.create();
+
+		WebResource webResource = client
+		   .resource("http://localhost:10080/Guinan/webapp/similarity/getSim");
+		
+		String input = "{\"sfp1\":\""+sfp1+"\",\"sfp2\":\""+sfp2+"\"}";
+		
+		ClientResponse response = webResource.post(ClientResponse.class, input);
+		if (response.getStatus() != 201) {
+			throw new RuntimeException("Failed : HTTP error code : "
+			     + response.getStatus());
+		}
+		System.out.println("Output from Server .... \n");
+		String output = response.getEntity(String.class);
+		
+		return Response.status(Status.OK).entity(output).build();
+	}
 }

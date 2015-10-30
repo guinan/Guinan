@@ -133,7 +133,7 @@ public class GuinanVimeoConnector extends GuinanConnector
 				// tags = { tag = [ {author=#ID#, id=#ID#, normalized=#STRING#, url=#URI#, _content=#STRING#}, {...}, ... ] }
 				LinkedHashMap<String, ?> tags = (LinkedHashMap<String, ?>)e.get( "tags" );
 				ArrayList<LinkedHashMap<String, ?>> tag = (ArrayList<LinkedHashMap<String, ?>>)tags.get( "tag" );
-				ArrayList<String> grTags = new ArrayList<>();
+				ArrayList<String> grTags = new ArrayList<String>();
 
 				for ( LinkedHashMap<String, ?> t: tag )
 					grTags.add( (String)t.get( "normalized" ) );

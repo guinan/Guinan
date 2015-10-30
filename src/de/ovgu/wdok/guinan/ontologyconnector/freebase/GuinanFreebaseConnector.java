@@ -109,7 +109,7 @@ public class GuinanFreebaseConnector extends GuinanOntologyConnector {
 	}
 	
 	private ArrayList<GuinanOntologyResult> extractFreebaseResults( ArrayList<LinkedHashMap<String, String>> results ) {
-		ArrayList<GuinanOntologyResult> guinanOntologyResults = new ArrayList<>();
+		ArrayList<GuinanOntologyResult> guinanOntologyResults = new ArrayList<GuinanOntologyResult>();
 		
 		for( LinkedHashMap<String, String> jsonObject: results ) {
 			guinanOntologyResults.add( GuinanFreebaseResult.FromLinkedHashMap(jsonObject) );
