@@ -4,7 +4,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * represents a pair of Semantic Fingerprints which are to be compared
+ * represents a pair of Semantic Fingerprints which are to be compared, the pair will be send as POST payload
  * @author kkrieger
  *
  */

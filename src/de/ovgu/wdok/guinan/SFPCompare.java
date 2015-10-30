@@ -23,7 +23,12 @@ public class SFPCompare {
 	
 	@POST
 	@Path("/getSim")
-	public static Double getGraphEditSimilarity(WTPGraph graph1, WTPGraph graph2){
+	public static Double getGraphEditSimilarity(final SFPPair sfp_pair){
+		//unmarshalling the sfps
+		WTPGraph graph1 =  WTPGraph.fromXML(sfp_pair.sfp1);
+		WTPGraph graph2 =  WTPGraph.fromXML(sfp_pair.sfp2);
+		
+		//calculating similarity
 		double distance = 0;
 		Collection<Node> g1_nodes = graph1.getGraph().getNodeSet();
 		Collection<Node> g2_nodes = graph2.getGraph().getNodeSet();

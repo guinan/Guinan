@@ -51,7 +51,7 @@ public class GuinanIterativeSFPGenerator {
 	public static int maxSearchDepth = 3;
 	// Initial cleaning of the graph
 	public static int maxPathLength = maxSearchDepth;
-	public static int maxPathExtensionLength = 2;
+	public static int maxPathExtensionLength = 1;
 	// Heuristics
 	public static int numRelevantNodesFilter = 10;
 	public static int minSupportNodesFilter = 5;
