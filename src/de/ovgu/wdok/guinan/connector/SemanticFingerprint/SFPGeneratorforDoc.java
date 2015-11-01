@@ -55,7 +55,7 @@ public class SFPGeneratorforDoc {
 
 	@GET
 	@Path("/getSFPforDoc")
-	@Produces(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.TEXT_HTML)
 	public String getSFPForDoc(@Context UriInfo info){
 		
 		String uri = info.getQueryParameters().getFirst("uri");

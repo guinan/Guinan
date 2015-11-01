@@ -1,16 +1,16 @@
 package de.ovgu.wdok.guinan;
 
-import java.util.Collection;
-import java.util.List;
+import graph.WTPGraph;
 
-import javax.ws.rs.GET;
+import java.util.Collection;
+
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-
-import graph.WTPGraph;
 
 @Path("similarity")
 public class SFPCompare {
@@ -23,8 +23,11 @@ public class SFPCompare {
 	
 	@POST
 	@Path("/getSim")
-	public static Double getGraphEditSimilarity(final SFPPair sfp_pair){
+	@Consumes(MediaType.APPLICATION_JSON)
+	public static String getGraphEditSimilarity(final SFPPair sfp_pair){
 		//unmarshalling the sfps
+		System.out.println("Trying to unmarshall SFPs ... ");
+	
 		WTPGraph graph1 =  WTPGraph.fromXML(sfp_pair.sfp1);
 		WTPGraph graph2 =  WTPGraph.fromXML(sfp_pair.sfp2);
 		
@@ -37,28 +40,67 @@ public class SFPCompare {
 		Collection<Edge> g2_edges = graph2.getGraph().getEdgeSet();
 		//check for common nodes
 		
+		boolean found = false;
+		
 		for(Node g1Node: g1_nodes){
-			if(!g2_nodes.contains(g1Node))
+			String label1 = g1Node.getId();
+			//look if you can find the node
+			found=false;
+			for(Node g2Node : g2_nodes){
+				if (label1.equals(g2Node.getId()))
+					found=true;
+			}
+			if (!found)
 				distance++;
 		}
+		
+
 		//check for common nodes (the other way around)
 		for(Node g2Node: g2_nodes){
-			if(!g1_nodes.contains(g2Node))
+			String label2 = g2Node.getId();
+			found=false;
+			for(Node g1Node : g1_nodes){
+				
+				if(label2.equals(g1Node.getId()))
+					found=true;
+			}
+			if (!found)
 				distance++;
 		}
 		
 		//check for common edges
 		for(Edge g1Edge: g1_edges){
-			if(!g2_edges.contains(g1Edge))
+			//compare only the labels, since ids are unique
+			String e1label = g1Edge.getAttribute("ui.label");
+			Node src = g1Edge.getNode0();
+			Node dest = g1Edge.getNode1();
+			found=false;
+			for(Edge g2edge : g2_edges){
+				if(g2edge.getAttribute("ui.label").equals(e1label) && src.getAttribute("ui.label").equals(e1label) && dest.getAttribute("ui.label").equals(e1label) )
+					found=true;
+			}
+			if (!found)
 				distance++;
 		}
 		//check for common edges (the other way around)
 		for(Edge g2Edge: g2_edges){
-			if(!g1_edges.contains(g2Edge))
+			//compare only the labels, since ids are unique
+			String e2label = g2Edge.getAttribute("ui.label");
+			Node src = g2Edge.getNode0();
+			Node dest = g2Edge.getNode1();
+			found=false;
+			for(Edge g1edge : g1_edges){
+				if(g1edge.getAttribute("ui.label").equals(e2label) && src.getAttribute("ui.label").equals(e2label) && dest.getAttribute("ui.label").equals(e2label) )
+					found=true;
+			}
+			if (!found)
 				distance++;
 		}
 		double maxDist = g1_edges.size() + g2_edges.size() + g1_nodes.size() + g2_nodes.size();
 		double similarity = (maxDist - distance) / maxDist;
-		return similarity;
+		System.out.println("nodes graph 1: "+ graph1.getNodeCount()+", \t nodes graph 2: "+graph2.getNodeCount());
+		System.out.println("edges graph 1: "+ graph1.getEdgeCount()+", \t nodes graph 2: "+graph2.getEdgeCount());
+		System.out.println("calculated distance: "+distance);
+		return Double.toString(similarity);
 	}
 }

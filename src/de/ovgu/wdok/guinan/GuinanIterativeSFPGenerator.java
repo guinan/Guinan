@@ -1,7 +1,6 @@
 package de.ovgu.wdok.guinan;
 
 import filterheuristics.InterConceptConntecting;
-
 import graph.GraphCleaner;
 import graph.WTPGraph;
 
@@ -9,6 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+
+
 //import javax.persistence.Entity;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,6 +33,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 import scala.Enumeration;
 
@@ -195,7 +199,7 @@ public class GuinanIterativeSFPGenerator {
 		 * Filters all Nodes that have paths to other Nodes which correspond to
 		 * a different keyword
 		 */
-		// heuristic.filterInterconntection(graph, paths,
+		//heuristic.filterInterconntection(graph, paths,
 		// correspondingKeywords);
 
 		/**
@@ -318,13 +322,15 @@ public class GuinanIterativeSFPGenerator {
 		
 		//try to get the last two SFPs from the sfplist
 		java.util.Enumeration<String> enu = sfplist.elements();
-		if (Collections.list(enu).size() < 2)
+		ArrayList<String> entries =  Collections.list(enu);
+		System.out.println("No of entries in FP list: "+entries.size());
+		if (entries.size() < 2)
 			return Response.status(Status.NOT_FOUND).entity("Less than two fingerprints in sfplist ... nothing to compare").build();
 		String sfp1="";
 		String sfp2="";
 		try{
-			sfp1 = enu.nextElement();
-			sfp2 = enu.nextElement();
+			sfp1 = entries.get(0);
+			sfp2 = entries.get(1);
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -334,13 +340,26 @@ public class GuinanIterativeSFPGenerator {
 		WebResource webResource = client
 		   .resource("http://localhost:10080/Guinan/webapp/similarity/getSim");
 		
-		String input = "{\"sfp1\":\""+sfp1+"\",\"sfp2\":\""+sfp2+"\"}";
+		HashMap<String,String> params = new HashMap<String, String>();
+		params.put("sfp1", sfp1);
+		params.put("sfp2", sfp2);
 		
-		ClientResponse response = webResource.post(ClientResponse.class, input);
-		if (response.getStatus() != 201) {
-			throw new RuntimeException("Failed : HTTP error code : "
-			     + response.getStatus());
+		//String input = "{\"sfp1\":\""+sfp1+"\",\"sfp2\":\""+sfp2+"\"}";
+		//System.out.println("Input for similarity: "+input);
+		ObjectMapper mapper = new ObjectMapper();
+		String input="";
+		try {
+			input = mapper.writeValueAsString(params);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
+		System.out.println("JSON input: ");
+		ClientResponse response = webResource.type(MediaType.APPLICATION_JSON).post(ClientResponse.class, input);
+		
+			System.out.println("Response from Service: "+response.getStatus() + "\n\n ");
+	
 		System.out.println("Output from Server .... \n");
 		String output = response.getEntity(String.class);
 		
