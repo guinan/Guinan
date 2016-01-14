@@ -1,88 +1,95 @@
 package de.ovgu.wdok.guinan.educ;
 
-import java.io.IOException;
+/**
+ * 
+ * @author kkrieger
+ *	Data object for educational metadata
+ */
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import com.cybozu.labs.langdetect.Detector;
-import com.cybozu.labs.langdetect.DetectorFactory;
-import com.cybozu.labs.langdetect.LangDetectException;
-import com.sun.jersey.spi.resource.Singleton;
-
-@Singleton
-@Path("EM")
 public class EducationalMetaData {
 
-	private Detector detector;
 	String language;
+	String interactivity_type;
+	String semantic_density;
+	String interactivity_level;
+	String difficulty;
+	String learning_resource_type;
+	String title;
+	String description;
+	String age_range;
+	
 
-	public EducationalMetaData() {
-		try {
-			this.init("WebContent/WEB-INF/lib/profiles/");
-			this.detector = DetectorFactory.create();
-		} catch (LangDetectException e) {
-			System.err.println("Could not load language profiles");
-		}
-		this.language = "";
+	public String getLanguage() {
+		return language;
 	}
 
-	public void init(String profileDirectory) throws LangDetectException {
-		DetectorFactory.loadProfile(profileDirectory);
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 
-	@GET
-	@Path("/genEM")
-	public Response getEducationalMetadata(@Context UriInfo info) {
-		System.out.println("Called genEM");
-		String uri = info.getQueryParameters().getFirst("uri");
-
-		Document doc = null;
-		try {
-			doc = Jsoup.connect(uri).get();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println(uri);
-			e.printStackTrace();
-		}
-
-		String plaintext = extractPlainText(doc);
-		language = this.getLanguage(plaintext);
-
-		if (language != "") {
-			return Response.status(200).entity(language).build();
-		}
-
-		return Response.serverError().build();
+	public String getInteractivity_type() {
+		return interactivity_type;
 	}
 
-	private String getLanguage(String txt) {
-		try {
-			this.detector = DetectorFactory.create();
-		}
-
-		catch (LangDetectException e) {
-			System.err.println("Could not create new detector instance");
-		}
-		this.detector.append(txt);
-		try {
-			return this.detector.detect();
-		} catch (LangDetectException e) {
-			System.err.println("Could not get language of text");
-		}
-		return "";
+	public void setInteractivity_type(String interactivity_type) {
+		this.interactivity_type = interactivity_type;
 	}
 
-	private String extractPlainText(Document doc) {
-
-		return doc.text();
+	public String getSemantic_density() {
+		return semantic_density;
 	}
+
+	public void setSemantic_density(String semantic_density) {
+		this.semantic_density = semantic_density;
+	}
+
+	public String getInteractivity_level() {
+		return interactivity_level;
+	}
+
+	public void setInteractivity_level(String interactivity_level) {
+		this.interactivity_level = interactivity_level;
+	}
+
+	public String getDifficulty() {
+		return difficulty;
+	}
+
+	public void setDifficulty(String difficulty) {
+		this.difficulty = difficulty;
+	}
+
+	public String getLearning_resource_type() {
+		return learning_resource_type;
+	}
+
+	public void setLearning_resource_type(String learning_resource_type) {
+		this.learning_resource_type = learning_resource_type;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getAge_range() {
+		return age_range;
+	}
+
+	public void setAge_range(String age_range) {
+		this.age_range = age_range;
+	}
+
+	
 }
