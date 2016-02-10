@@ -19,9 +19,9 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class CompareEducationalData {
-	
-	final static String basedir ="/home/kati/Documents/diss/LOM/sample/";
-	
+
+	final static String basedir = "/home/kkrieger/data/LOM/vishub";
+
 	public static void main(String args[]){
 		//reading LOM files
 		final File lomfolder = new File(basedir);
@@ -77,7 +77,7 @@ public class CompareEducationalData {
 						if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 
 							Element eElement = (Element) nNode;
-
+							try{
 							System.out.println("interactivity type: " + eElement.getElementsByTagName("interactivitytype").item(0).getTextContent());
 							System.out.println("interactivity level : " + eElement.getElementsByTagName("interactivitylevel").item(0).getTextContent());
 							System.out.println("semantic density : " + eElement.getElementsByTagName("semanticdensity").item(0).getTextContent());
@@ -86,6 +86,10 @@ public class CompareEducationalData {
 							System.out.println("typical age range : " + eElement.getElementsByTagName("typicalagerange").item(0).getTextContent());
 
 							System.out.println("\n-------------------------------------------------------------\n\n");
+							}
+							catch(Exception e){
+								e.printStackTrace();
+							}
 						}
 					}
 				}
@@ -94,5 +98,4 @@ public class CompareEducationalData {
 		}
 		
 	}
-
 }

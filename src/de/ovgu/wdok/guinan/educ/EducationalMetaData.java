@@ -10,9 +10,7 @@ public class EducationalMetaData {
 
 	String language;
 	String interactivity_type;
-	String semantic_density;
 	String interactivity_level;
-	String difficulty;
 	String learning_resource_type;
 	String title;
 	String description;
@@ -35,13 +33,13 @@ public class EducationalMetaData {
 		this.interactivity_type = interactivity_type;
 	}
 
-	public String getSemantic_density() {
+	/*public String getSemantic_density() {
 		return semantic_density;
 	}
 
 	public void setSemantic_density(String semantic_density) {
 		this.semantic_density = semantic_density;
-	}
+	}*/
 
 	public String getInteractivity_level() {
 		return interactivity_level;
