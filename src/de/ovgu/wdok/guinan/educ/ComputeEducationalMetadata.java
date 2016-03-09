@@ -1,6 +1,7 @@
 package de.ovgu.wdok.guinan.educ;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.ws.rs.GET;
@@ -13,6 +14,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import com.cybozu.labs.langdetect.Detector;
 import com.cybozu.labs.langdetect.DetectorFactory;
@@ -78,7 +80,14 @@ public class ComputeEducationalMetadata {
 		String uri = info.getQueryParameters().getFirst("uri");
 		
 		try {
-			doc = Jsoup.connect(uri).get();
+			org.jsoup.Connection.Response response= Jsoup.connect(uri)
+			.ignoreContentType(true)
+	           .userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")  
+	           .referrer("http://www.google.com")   
+	           .timeout(12000) 
+	           .followRedirects(true)
+	           .execute();
+			doc = response.parse();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			System.out.println(uri);
@@ -88,10 +97,9 @@ public class ComputeEducationalMetadata {
 		EducationalMetaData em = new EducationalMetaData();
 
 		String plaintext = extractPlainText(uri);
-		System.out.println("Plaintext of URI: "+plaintext);
 		em.setLanguage(this.identifyLanguage(plaintext));
 		em.setAge_range(this.computeReadabiltyScore(plaintext));
-
+		em.setLearning_resource_type(this.computeLearningResourceType());
 		
 		return Response.status(200).entity(em).build();
 		
@@ -130,15 +138,53 @@ public class ComputeEducationalMetadata {
 		return fleschkincaid.toString();
 	}
 	
-	private String computeLearningResourceType(){
+	/**
+	 * 
+	 * @return ArrayList with possible values for learning resource type
+	 */
+	private ArrayList<String> computeLearningResourceType(){
 		
-		String rtype="";
-		//possible values: exercise, simulation, questionnaire, 
+		ArrayList<String> rtype= new ArrayList<String>();
+		//possible values from LOM: exercise, simulation, questionnaire, 
 		//diagram, figure, graph, index, slide, table, narrative text, 
 		//exam, experiment, problem statement, self assessment, lecture 
+		//
+		//we try to work with: quiz, FAQ, code fragment, images, slides, narrative text, table
 		
+		//
+		//check for table
+		Elements table = doc.select("table");
+		if(!table.isEmpty()){
+			//resource contains a table
+			rtype.add(EducationalMetaData.RESOURCETYPE_TABLE);
+		}
 		
+		//check for FAQ 
+		//1) check if there is the word "FAQ" or "frequently asked questions" in a headline
+		if(elementContainsString("h1", "FAQ") || 
+				elementContainsString("h2", "FAQ") || 
+				elementContainsString("h3", "FAQ") || 
+				elementContainsString("h4", "FAQ") || 
+				elementContainsString("h5", "FAQ") || 
+				elementContainsString("title", "FAQ") ||
+				elementContainsString("h1", "frequently asked questions") || 
+				elementContainsString("h2", "frequently asked questions") || 
+				elementContainsString("h3", "frequently asked questions") || 
+				elementContainsString("h4", "frequently asked questions") || 
+				elementContainsString("h5", "frequently asked questions") || 
+				elementContainsString("title", "frequently asked questions")  
+				)
 		
+			//TODO what abt pages like stackoverflow?
+		rtype.add(EducationalMetaData.RESOURCETYPE_FAQ);
+		
+		// check for code fragments -- gonna be trickier
+		//let's see if page contains <pre> or <code>
+		//TODO: this was quick and dirty, what abt text that is not properly formatted
+		if((!doc.select("pre").isEmpty()) || (!doc.select("code").isEmpty()))
+			rtype.add(EducationalMetaData.RESOURCETYPE_CODE);
+		
+		//return educational metadata result object
 		return rtype;
 	}
 
@@ -148,7 +194,6 @@ public class ComputeEducationalMetadata {
 		//boilerpipe removes things like navigation
 		String plaintext="";
 		try {
-			System.out.println("URI: "+uri+"\nText: "+DefaultExtractor.INSTANCE.getText(uri));
 			plaintext = ArticleExtractor.INSTANCE.getText(uri);
 		} catch (BoilerpipeProcessingException e) {
 			// TODO Auto-generated catch block
@@ -164,5 +209,13 @@ public class ComputeEducationalMetadata {
 			 return doc.text();
 		}
 		
+	}
+	
+	private boolean elementContainsString(String element, String content){
+		Elements el = doc.select(element);
+		if(!el.isEmpty() && el.text().contains(content)){
+			return true;
+		}
+		return false;
 	}
 }

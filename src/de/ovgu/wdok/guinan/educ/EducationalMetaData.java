@@ -1,5 +1,7 @@
 package de.ovgu.wdok.guinan.educ;
 
+import java.util.ArrayList;
+
 /**
  * 
  * @author kkrieger
@@ -11,10 +13,13 @@ public class EducationalMetaData {
 	String language;
 	String interactivity_type;
 	String interactivity_level;
-	String learning_resource_type;
+	ArrayList <String> learning_resource_type;
 	String title;
 	String description;
 	String age_range;
+	final static String RESOURCETYPE_TABLE="table";
+	final static String RESOURCETYPE_FAQ="FAQ";
+	final static String RESOURCETYPE_CODE="code";
 	
 
 	public String getLanguage() {
@@ -49,19 +54,13 @@ public class EducationalMetaData {
 		this.interactivity_level = interactivity_level;
 	}
 
-	public String getDifficulty() {
-		return difficulty;
-	}
+	
 
-	public void setDifficulty(String difficulty) {
-		this.difficulty = difficulty;
-	}
-
-	public String getLearning_resource_type() {
+	public ArrayList <String> getLearning_resource_type() {
 		return learning_resource_type;
 	}
 
-	public void setLearning_resource_type(String learning_resource_type) {
+	public void setLearning_resource_type(ArrayList<String> learning_resource_type) {
 		this.learning_resource_type = learning_resource_type;
 	}
 
