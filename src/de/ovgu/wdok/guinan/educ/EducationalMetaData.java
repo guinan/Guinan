@@ -20,6 +20,11 @@ public class EducationalMetaData {
 	final static String RESOURCETYPE_TABLE="table";
 	final static String RESOURCETYPE_FAQ="FAQ";
 	final static String RESOURCETYPE_CODE="code";
+	public static final String RESOURCETYPE_NARRATIVE_TEXT = "narrative text";
+	public static final String RESOURCETYPE_IMAGE = "image";
+	public static final String RESOURCETYPE_SLIDES = "slides";
+	public static final String RESOURCETYPE_VIDEO = "video";
+	public static final String RESOURCETYPE_AUDIO = "audio";
 	
 
 	public String getLanguage() {
