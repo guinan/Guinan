@@ -1,10 +1,14 @@
 package de.ovgu.wdok.guinan.educ;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -17,6 +21,7 @@ import net.sf.classifier4J.summariser.SimpleSummariser;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.cybozu.labs.langdetect.Detector;
@@ -119,11 +124,15 @@ public class ComputeEducationalMetadata {
 		EducationalMetaData em = new EducationalMetaData();
 
 		this.plaintext = extractPlainText(uri);
-		em.setLanguage(this.identifyLanguage(plaintext));
-		em.setAge_range(this.computeReadabiltyScore(plaintext));
+		// we can only compute these values if we have some text
+		if (!plaintext.equals("")) {
+			em.setLanguage(this.identifyLanguage(plaintext));
+			em.setAge_range(this.computeReadabiltyScore(plaintext));
+			em.setDescription(this.getDescriptionOfResource());
+		}
 		em.setLearning_resource_type(this.computeLearningResourceType());
 		em.setTitle(this.getTitleOfResource());
-		em.setDescription(this.getDescriptionOfResource());
+
 		return Response.status(200).entity(em).build();
 
 		// return Response.serverError().build();
@@ -137,7 +146,13 @@ public class ComputeEducationalMetadata {
 		String desc = "";
 		SimpleSummariser sum = new SimpleSummariser();
 		// is there a meta description field?
-		// if(!doc.select(meta))
+		Elements metadesc = doc.select("meta[name=description]");
+		if (!metadesc.isEmpty()) {
+			for (Element metadesccontent : metadesc) {
+				return metadesccontent.attr("content");
+			}
+
+		}
 
 		// try to summarize with tools
 		desc = sum.summarise(this.plaintext, 5);
@@ -170,6 +185,7 @@ public class ComputeEducationalMetadata {
 	 * @return
 	 */
 	private String computeReadabiltyScore(String resource_text) {
+		System.out.println("Resource text: " + resource_text);
 		this.r = new Readability(resource_text);
 		Double fleschkincaid = r.getFleschKincaidGradeLevel();
 		// calculating age
@@ -227,34 +243,93 @@ public class ComputeEducationalMetadata {
 			rtype.add(EducationalMetaData.RESOURCETYPE_CODE);
 
 		// check for images
-		if (!doc.select("img").isEmpty())
-			rtype.add(EducationalMetaData.RESOURCETYPE_IMAGE);
+		Elements images = doc.select("img");
+		if (!images.isEmpty()) {
+			// check size of found images
+			int width = 0;
+			int height = 0;
+			for (Element img : images) {
+				// try width and height attributes of the image element itself
+				if (!img.select("[width]").isEmpty())
+					width = Integer.parseInt(img.attr("width"));
+				if (!img.select("[height]").isEmpty())
+					height = Integer.parseInt(img.attr("height"));
+				System.out.println("width, height: " + width + ", " + height);
+				// try css attributes
+				// [attr*=valContaining]
+				if (!img.select("[style*=width]").isEmpty()) {
+					// get attr value text and try to read values
+					String cssvals = img.select("[style]").text();
+					String[] vals = cssvals.split(";");
+					for (String singleval : vals) {
+						if (singleval.startsWith("width"))
+							width = Integer.parseInt(singleval
+									.substring(singleval.indexOf(":")));
+						if (singleval.startsWith("height"))
+							height = Integer.parseInt(singleval
+									.substring(singleval.indexOf(":")));
+						System.out.println("width, height: " + width + ", "
+								+ height);
+					}
+				}
+				// try actual dimensions of image file
+				BufferedImage bimg;
+				try {
+					System.out.println("Trying to load " + img.attr("abs:src"));
+					URL url = new URL(img.attr("abs:src"));
+					bimg = ImageIO.read(url);
+					if (bimg != null) {
+						width = bimg.getWidth();
+						height = bimg.getHeight();
+						System.out.println("width, height: " + width + ", "
+								+ height);
+					}
+				} catch (MalformedURLException e) {
+					System.err.print("Could not fetch image from URL: ");
+					e.printStackTrace();
+				} catch (IOException e) {
+					System.err.print("Could not read image: ");
+					e.printStackTrace();
+				}
+
+			}
+			System.out.println("width, height: " + width + ", " + height);
+			if (width > 300 && height > 300) {
+				// check if img is inside element with class slide*
+
+				rtype.add(EducationalMetaData.RESOURCETYPE_IMAGE);
+			}
+		}
 
 		// check for slides
 
 		// very often slide pages have elements with a class name that contains
 		// the string "slide"
 		// let's try this naive idea first
-				
-		//class name starts with slide
-	    
-	    if (!doc.select("[class~=(slide)s?.*]").isEmpty()){
-	    	rtype.add(EducationalMetaData.RESOURCETYPE_SLIDES);
-	    }
+
+		// class name starts with slide
+
+		for (String slidestr : this.elemsForSlides) {
+			System.out.println("Trying " + slidestr + "[class*=slide]");
+			if (!doc.select(slidestr + "[class*=slide]").isEmpty()) {
+				rtype.add(EducationalMetaData.RESOURCETYPE_SLIDES);
+			}
+		}
+
 		// check for narrative text
 		if (this.wordCount(this.plaintext) >= this.wc_threshold) {
 			rtype.add(EducationalMetaData.RESOURCETYPE_NARRATIVE_TEXT);
 		}
 
-		//check for video
-		  if (!(doc.select("[class~=(player)s?.*]")).isEmpty()){
-		    	rtype.add(EducationalMetaData.RESOURCETYPE_VIDEO);
-		    }
-		//check for audio
-		//try to find links to mp3 or wav files
-		  if(!(doc.select("[href~=(?i)\\.(mp3|wav|ogg|mp4)]")).isEmpty())
-			  rtype.add(EducationalMetaData.RESOURCETYPE_AUDIO);
-		
+		// check for video
+		if (!(doc.select("[class~=(player)s?.*]")).isEmpty()) {
+			rtype.add(EducationalMetaData.RESOURCETYPE_VIDEO);
+		}
+		// check for audio
+		// try to find links to mp3 or wav files
+		if (!(doc.select("[href~=(?i)\\.(mp3|wav|ogg|mp4)]")).isEmpty())
+			rtype.add(EducationalMetaData.RESOURCETYPE_AUDIO);
+
 		// return educational metadata result object
 		return rtype;
 	}
@@ -273,6 +348,7 @@ public class ComputeEducationalMetadata {
 		String plaintext = "";
 		try {
 			plaintext = ArticleExtractor.INSTANCE.getText(uri);
+			plaintext.trim();
 		} catch (BoilerpipeProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -289,16 +365,17 @@ public class ComputeEducationalMetadata {
 					plaintext += el.text() + " ";
 				}
 			}
+			plaintext.trim();
 		}
 		if (!plaintext.equals(""))
-			return plaintext;
+			return plaintext.trim();
 		else {
 			// if the boilerpipe extraction doesnt work out for whatever reason
 			// get the document and extract all textnodes (might include text
 			// from navigation etc.)
 			System.out.println("Fallback to extracting text nodes");
 
-			return doc.text();
+			return doc.text().trim();
 		}
 
 	}
