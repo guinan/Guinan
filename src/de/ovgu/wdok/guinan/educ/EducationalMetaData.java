@@ -93,5 +93,16 @@ public class EducationalMetaData {
 		this.age_range = age_range;
 	}
 
+	@Override
+	public String toString() {
+		return "EducationalMetaData [language=" + language
+				+ ", interactivity_type=" + interactivity_type
+				+ ", interactivity_level=" + interactivity_level
+				+ ", learning_resource_type=" + learning_resource_type
+				+ ", title=" + title + ", description=" + description
+				+ ", age_range=" + age_range + "]";
+	}
+
+	
 	
 }

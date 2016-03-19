@@ -3,6 +3,8 @@ package de.ovgu.wdok.guinan.educ;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +45,8 @@ public class ComputeEducationalMetadata {
 	private String uri;
 	Document doc;
 	private String plaintext;
+	private String orig_uri;
+	private int num_of_images;
 
 	/* constants */
 	// elements that are considered to contain crucial textual content
@@ -74,6 +78,8 @@ public class ComputeEducationalMetadata {
 		this.doc = null;
 
 		this.plaintext = "";
+		this.orig_uri = "";
+		this.num_of_images = 0;
 
 	}
 
@@ -103,8 +109,22 @@ public class ComputeEducationalMetadata {
 	@Path("/genEM")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getEducationalMetadata(@Context UriInfo info) {
-		System.out.println("Called genEM");
+		//System.out.println("Called genEM");
 		String uri = info.getQueryParameters().getFirst("uri");
+
+		// dissecting the uri
+		try {
+			URL res_uri = new URL(uri);
+			this.orig_uri = res_uri.getQuery();
+			this.orig_uri = this.orig_uri
+					.substring(this.orig_uri.indexOf("=") + 1);
+
+			//System.out.println("Original uri: " + this.orig_uri);
+
+		} catch (MalformedURLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		try {
 			org.jsoup.Connection.Response response = Jsoup
@@ -115,6 +135,7 @@ public class ComputeEducationalMetadata {
 					.referrer("http://www.google.com").timeout(12000)
 					.followRedirects(true).execute();
 			doc = response.parse();
+			System.out.println(doc.html());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			System.out.println(uri);
@@ -185,17 +206,27 @@ public class ComputeEducationalMetadata {
 	 * @return
 	 */
 	private String computeReadabiltyScore(String resource_text) {
-		System.out.println("Resource text: " + resource_text);
 		this.r = new Readability(resource_text);
-		Double fleschkincaid = r.getFleschKincaidGradeLevel();
+		int fleschkincaid = r.getFleschKincaidGradeLevel().intValue();
+		int fck_readingEase = r.getFleschReadingEase().intValue();
+		int colemanLiau = r.getColemanLiau().intValue();
+		int gunningfog = (new Double(r.getGunningFog())).intValue();
+		int smog = r.getSMOG().intValue();
+		int smog_index = r.getSMOGIndex().intValue();
+		int ari = r.getARI().intValue();
+
 		// calculating age
-		int gradelevel = fleschkincaid.intValue();
-		/*
-		 * if (gradelevel < 0) return this.gradelevel_agerange.get(0); else
-		 * if(gradelevel>13) return this.gradelevel_agerange.get(13); else
-		 * return this.gradelevel_agerange.get(gradelevel);
-		 */
-		return fleschkincaid.toString();
+		int gradelevel = (fleschkincaid + fck_readingEase + colemanLiau
+				+ gunningfog + smog + smog_index + ari) / 7;
+
+		if (gradelevel < 0)
+			return this.gradelevel_agerange.get(0);
+		else if (gradelevel > 13)
+			return this.gradelevel_agerange.get(13);
+		else
+			return this.gradelevel_agerange.get(gradelevel);
+
+		// return gradelevel+"";
 	}
 
 	/**
@@ -249,6 +280,36 @@ public class ComputeEducationalMetadata {
 			int width = 0;
 			int height = 0;
 			for (Element img : images) {
+				// try actual dimensions of image file
+				BufferedImage bimg;
+				try {
+
+					URI url = new URI(img.attr("src"));
+					if (!url.isAbsolute()) {
+						if (this.orig_uri != "") {
+							URI tmp = new URI(this.orig_uri);
+							url = new URI(tmp.getScheme() + "://"
+									+ tmp.getAuthority() + img.attr("src"));
+						}
+					}
+					System.out.println("Image: "+url);
+					bimg = ImageIO.read(url.toURL());
+					if (bimg != null) {
+						width = bimg.getWidth();
+						height = bimg.getHeight();
+					}
+
+				} catch (MalformedURLException e) {
+					System.err.print("Could not fetch image from URL: ");
+					// e.printStackTrace();
+				} catch (IOException e) {
+					System.err.print("Could not read image: ");
+					// e.printStackTrace();
+
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				// try width and height attributes of the image element itself
 				if (!img.select("[width]").isEmpty())
 					width = Integer.parseInt(img.attr("width"));
@@ -262,41 +323,33 @@ public class ComputeEducationalMetadata {
 					String cssvals = img.select("[style]").text();
 					String[] vals = cssvals.split(";");
 					for (String singleval : vals) {
-						if (singleval.startsWith("width"))
+						if (singleval.startsWith("width")){
+							if(singleval.endsWith("%")){
+								width = width/100*Integer.parseInt(singleval
+										.substring(singleval.indexOf(":")));
+							}
 							width = Integer.parseInt(singleval
 									.substring(singleval.indexOf(":")));
-						if (singleval.startsWith("height"))
+						}
+						if (singleval.startsWith("height")){
+							if(singleval.endsWith("%")){
+								height = height/100*Integer.parseInt(singleval
+										.substring(singleval.indexOf(":")));
+							}
 							height = Integer.parseInt(singleval
 									.substring(singleval.indexOf(":")));
 						System.out.println("width, height: " + width + ", "
 								+ height);
+						}
 					}
 				}
-				// try actual dimensions of image file
-				BufferedImage bimg;
-				try {
-					System.out.println("Trying to load " + img.attr("abs:src"));
-					URL url = new URL(img.attr("abs:src"));
-					bimg = ImageIO.read(url);
-					if (bimg != null) {
-						width = bimg.getWidth();
-						height = bimg.getHeight();
-						System.out.println("width, height: " + width + ", "
-								+ height);
-					}
-				} catch (MalformedURLException e) {
-					System.err.print("Could not fetch image from URL: ");
-					e.printStackTrace();
-				} catch (IOException e) {
-					System.err.print("Could not read image: ");
-					e.printStackTrace();
-				}
+				
 
 			}
 			System.out.println("width, height: " + width + ", " + height);
 			if (width > 300 && height > 300) {
 				// check if img is inside element with class slide*
-
+				this.num_of_images++;
 				rtype.add(EducationalMetaData.RESOURCETYPE_IMAGE);
 			}
 		}
@@ -310,8 +363,8 @@ public class ComputeEducationalMetadata {
 		// class name starts with slide
 
 		for (String slidestr : this.elemsForSlides) {
-			System.out.println("Trying " + slidestr + "[class*=slide]");
-			if (!doc.select(slidestr + "[class*=slide]").isEmpty()) {
+			System.out.println("Trying " + slidestr + "[class~=.*slide.*]");
+			if (!doc.select(slidestr + "[class~=.*slide.*]").isEmpty()) {
 				rtype.add(EducationalMetaData.RESOURCETYPE_SLIDES);
 			}
 		}
