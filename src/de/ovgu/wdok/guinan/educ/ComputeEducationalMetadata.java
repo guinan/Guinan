@@ -1,13 +1,21 @@
 package de.ovgu.wdok.guinan.educ;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
@@ -21,6 +29,8 @@ import javax.ws.rs.core.UriInfo;
 
 import net.sf.classifier4J.summariser.SimpleSummariser;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -42,11 +52,12 @@ public class ComputeEducationalMetadata {
 
 	private Detector detector;
 	private Readability r;
-	private String uri;
+	private String res_uri;
 	Document doc;
 	private String plaintext;
 	private String orig_uri;
 	private int num_of_images;
+	private HashMap<String, Double> resourcetypemap;
 
 	/* constants */
 	// elements that are considered to contain crucial textual content
@@ -80,7 +91,7 @@ public class ComputeEducationalMetadata {
 		this.plaintext = "";
 		this.orig_uri = "";
 		this.num_of_images = 0;
-
+		this.resourcetypemap = new HashMap<String, Double>();
 	}
 
 	private void initGradeLevelMap() {
@@ -109,17 +120,23 @@ public class ComputeEducationalMetadata {
 	@Path("/genEM")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getEducationalMetadata(@Context UriInfo info) {
-		//System.out.println("Called genEM");
-		String uri = info.getQueryParameters().getFirst("uri");
+		// System.out.println("Called genEM");
+		this.res_uri = info.getQueryParameters().getFirst("uri");
 
 		// dissecting the uri
 		try {
-			URL res_uri = new URL(uri);
-			this.orig_uri = res_uri.getQuery();
-			this.orig_uri = this.orig_uri
-					.substring(this.orig_uri.indexOf("=") + 1);
-
-			//System.out.println("Original uri: " + this.orig_uri);
+			URL res_uri = new URL(this.res_uri);
+			System.out.println("resource uri: " + res_uri);
+			if (res_uri.getQuery() != null) {
+				this.orig_uri = res_uri.getQuery();
+				System.out.println("URI: " + this.orig_uri);
+				// does uri have uri embedded?
+				if (this.orig_uri.indexOf("=") != -1) {
+					this.orig_uri = this.orig_uri.substring(this.orig_uri
+							.indexOf("=") + 1);
+				}
+			}
+			// System.out.println("Original uri: " + this.orig_uri);
 
 		} catch (MalformedURLException e1) {
 			// TODO Auto-generated catch block
@@ -128,27 +145,34 @@ public class ComputeEducationalMetadata {
 
 		try {
 			org.jsoup.Connection.Response response = Jsoup
-					.connect(uri)
+					.connect(this.res_uri)
 					.ignoreContentType(true)
 					.userAgent(
 							"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
 					.referrer("http://www.google.com").timeout(12000)
 					.followRedirects(true).execute();
-			doc = response.parse();
-			System.out.println(doc.html());
+			this.doc = response.parse();
+			// System.out.println(doc.html());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.out.println(uri);
+			System.out.println(this.res_uri);
 			e.printStackTrace();
 		}
 
 		EducationalMetaData em = new EducationalMetaData();
 
-		this.plaintext = extractPlainText(uri);
+		/*
+		 * if(this.orig_uri.endsWith(".pdf")) this.plaintext =
+		 * extractPlainTextFromPdf(uri); else
+		 */
+		this.plaintext = extractPlainText(this.res_uri);
 		// we can only compute these values if we have some text
 		if (!plaintext.equals("")) {
 			em.setLanguage(this.identifyLanguage(plaintext));
-			em.setAge_range(this.computeReadabiltyScore(plaintext));
+			if (em.getLanguage().equalsIgnoreCase("en"))
+				em.setAge_range(this.computeReadabiltyScore(plaintext, 0));
+			else
+				em.setAge_range(this.computeReadabiltyScore(plaintext, 1));
 			em.setDescription(this.getDescriptionOfResource());
 		}
 		em.setLearning_resource_type(this.computeLearningResourceType());
@@ -205,7 +229,8 @@ public class ComputeEducationalMetadata {
 	 * @param resource_text
 	 * @return
 	 */
-	private String computeReadabiltyScore(String resource_text) {
+	private String computeReadabiltyScore(String resource_text, int mode) {
+
 		this.r = new Readability(resource_text);
 		int fleschkincaid = r.getFleschKincaidGradeLevel().intValue();
 		int fck_readingEase = r.getFleschReadingEase().intValue();
@@ -214,10 +239,18 @@ public class ComputeEducationalMetadata {
 		int smog = r.getSMOG().intValue();
 		int smog_index = r.getSMOGIndex().intValue();
 		int ari = r.getARI().intValue();
+		int gradelevel = 0;
 
-		// calculating age
-		int gradelevel = (fleschkincaid + fck_readingEase + colemanLiau
-				+ gunningfog + smog + smog_index + ari) / 7;
+		// if language is english
+		if (mode == 0) {
+			// calculating age
+
+			gradelevel = (fleschkincaid + fck_readingEase + colemanLiau
+					+ gunningfog + smog + smog_index + ari) / 7;
+		}
+		// for other (european) languages
+		else
+			gradelevel = (colemanLiau + ari) / 2;
 
 		if (gradelevel < 0)
 			return this.gradelevel_agerange.get(0);
@@ -248,7 +281,12 @@ public class ComputeEducationalMetadata {
 		Elements table = doc.select("table");
 		if (!table.isEmpty()) {
 			// resource contains a table
-			rtype.add(EducationalMetaData.RESOURCETYPE_TABLE);
+			// TODO is this working as desired?
+			String table_content = table.text();
+			double ratio = table_content.length() / this.plaintext.length();
+			this.resourcetypemap.put(EducationalMetaData.RESOURCETYPE_TABLE,
+					ratio);
+			// rtype.add(EducationalMetaData.RESOURCETYPE_TABLE);
 		}
 
 		// check for FAQ
@@ -257,7 +295,8 @@ public class ComputeEducationalMetadata {
 		for (String headerstr : this.header_strings) {
 			boolean done = false;
 			if (elementContainsString(headerstr, faq_pattern)) {
-				rtype.add(EducationalMetaData.RESOURCETYPE_FAQ);
+				this.resourcetypemap.put(EducationalMetaData.RESOURCETYPE_FAQ,
+						1.0);
 				done = true;
 			}
 			if (done)
@@ -270,9 +309,11 @@ public class ComputeEducationalMetadata {
 		// let's see if page contains <pre> or <code>
 		// TODO: this was quick and dirty, what abt text that is not properly
 		// formatted
-		if ((!doc.select("pre").isEmpty()) || (!doc.select("code").isEmpty()))
-			rtype.add(EducationalMetaData.RESOURCETYPE_CODE);
+		if ((!doc.select("pre").isEmpty()) || (!doc.select("code").isEmpty())) {
+			// compute amount of code in page
 
+			rtype.add(EducationalMetaData.RESOURCETYPE_CODE);
+		}
 		// check for images
 		Elements images = doc.select("img");
 		if (!images.isEmpty()) {
@@ -285,14 +326,18 @@ public class ComputeEducationalMetadata {
 				try {
 
 					URI url = new URI(img.attr("src"));
+					URI tmp;
 					if (!url.isAbsolute()) {
 						if (this.orig_uri != "") {
-							URI tmp = new URI(this.orig_uri);
-							url = new URI(tmp.getScheme() + "://"
-									+ tmp.getAuthority() + img.attr("src"));
-						}
+							tmp = new URI(this.orig_uri);
+						} else
+							tmp = new URI(this.res_uri);
+
+						url = new URI(tmp.getScheme() + "://"
+								+ tmp.getAuthority() + img.attr("src"));
+
 					}
-					System.out.println("Image: "+url);
+					System.out.println("Image: " + url);
 					bimg = ImageIO.read(url.toURL());
 					if (bimg != null) {
 						width = bimg.getWidth();
@@ -323,31 +368,36 @@ public class ComputeEducationalMetadata {
 					String cssvals = img.select("[style]").text();
 					String[] vals = cssvals.split(";");
 					for (String singleval : vals) {
-						if (singleval.startsWith("width")){
-							if(singleval.endsWith("%")){
-								width = width/100*Integer.parseInt(singleval
-										.substring(singleval.indexOf(":")));
+						if (singleval.startsWith("width")) {
+							if (singleval.endsWith("%")) {
+								width = width
+										/ 100
+										* Integer.parseInt(singleval
+												.substring(singleval
+														.indexOf(":")));
 							}
 							width = Integer.parseInt(singleval
 									.substring(singleval.indexOf(":")));
 						}
-						if (singleval.startsWith("height")){
-							if(singleval.endsWith("%")){
-								height = height/100*Integer.parseInt(singleval
-										.substring(singleval.indexOf(":")));
+						if (singleval.startsWith("height")) {
+							if (singleval.endsWith("%")) {
+								height = height
+										/ 100
+										* Integer.parseInt(singleval
+												.substring(singleval
+														.indexOf(":")));
 							}
 							height = Integer.parseInt(singleval
 									.substring(singleval.indexOf(":")));
-						System.out.println("width, height: " + width + ", "
-								+ height);
+							System.out.println("width, height: " + width + ", "
+									+ height);
 						}
 					}
 				}
-				
 
 			}
 			System.out.println("width, height: " + width + ", " + height);
-			if (width > 300 && height > 300) {
+			if (width > 300 || height > 300) {
 				// check if img is inside element with class slide*
 				this.num_of_images++;
 				rtype.add(EducationalMetaData.RESOURCETYPE_IMAGE);
@@ -384,6 +434,10 @@ public class ComputeEducationalMetadata {
 			rtype.add(EducationalMetaData.RESOURCETYPE_AUDIO);
 
 		// return educational metadata result object
+		Map<String, Double> tmp = sortByValue(resourcetypemap);
+		for (Entry<String, Double> e : tmp.entrySet()) {
+			rtype.add(e.getKey());
+		}
 		return rtype;
 	}
 
@@ -413,7 +467,9 @@ public class ComputeEducationalMetadata {
 			System.out.println("Fallback to extracting certain HTML elements");
 			// p article h
 			for (String e : this.elemsForPlainText) {
-				Elements tmp = doc.select(e);
+				// System.out.println("Looking for "+e);
+				// System.out.println("doc: "+this.doc.html());
+				Elements tmp = this.doc.select(e);
 				for (org.jsoup.nodes.Element el : tmp) {
 					plaintext += el.text() + " ";
 				}
@@ -431,6 +487,34 @@ public class ComputeEducationalMetadata {
 			return doc.text().trim();
 		}
 
+	}
+
+	private String extractPlainTextFromPdf(String uri) {
+		System.out.println("Trying to extract text from pdf");
+
+		String plaintext = "";
+		File pdffile;
+		try {
+			pdffile = new File(new URI(uri));
+			PDDocument document = PDDocument.load(pdffile);
+			document.getClass();
+
+			// PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+			// stripper.setSortByPosition(true);
+			PDFTextStripper stripper = new PDFTextStripper();
+			// stripper.setStartPage(1);
+			// stripper.setEndPage(2);
+			stripper.setSortByPosition(true);
+			plaintext += stripper.getText(document);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return plaintext;
 	}
 
 	/**
@@ -470,5 +554,26 @@ public class ComputeEducationalMetadata {
 			return 0;
 		System.out.println(trim.split("\\W+").length);
 		return trim.split("\\W+").length;
+	}
+
+	// taken from
+	// http://stackoverflow.com/questions/109383/sort-a-mapkey-value-by-values-java
+
+	// sorting a hashmap by value
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(
+			Map<K, V> map) {
+		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
+		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
+			@Override
+			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
+				return (o1.getValue()).compareTo(o2.getValue());
+			}
+		});
+
+		Map<K, V> result = new LinkedHashMap<>();
+		for (Map.Entry<K, V> entry : list) {
+			result.put(entry.getKey(), entry.getValue());
+		}
+		return result;
 	}
 }
