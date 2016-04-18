@@ -122,7 +122,7 @@ public class ComputeEducationalMetadata {
 	public Response getEducationalMetadata(@Context UriInfo info) {
 		// System.out.println("Called genEM");
 		this.res_uri = info.getQueryParameters().getFirst("uri");
-
+		boolean proxy=false;
 		// dissecting the uri
 		try {
 			URL res_uri = new URL(this.res_uri);
@@ -132,6 +132,7 @@ public class ComputeEducationalMetadata {
 				System.out.println("URI: " + this.orig_uri);
 				// does uri have uri embedded?
 				if (this.orig_uri.indexOf("=") != -1) {
+					proxy=true;
 					this.orig_uri = this.orig_uri.substring(this.orig_uri
 							.indexOf("=") + 1);
 				}
@@ -143,22 +144,19 @@ public class ComputeEducationalMetadata {
 			e1.printStackTrace();
 		}
 
-		try {
-			org.jsoup.Connection.Response response = Jsoup
-					.connect(this.res_uri)
-					.ignoreContentType(true)
-					.userAgent(
-							"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
-					.referrer("http://www.google.com").timeout(12000)
-					.followRedirects(true).execute();
-			this.doc = response.parse();
-			// System.out.println(doc.html());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println(this.res_uri);
-			e.printStackTrace();
+		this.doc = getDocumentFromUri(this.res_uri);
+		if(this.doc==null){
+			//if proxy failed try to fetch doc from original uri
+			if (proxy){
+				System.out.println("Trying alternative URI");
+				this.doc = getDocumentFromUri(this.orig_uri);
+			}
 		}
-
+		if(this.doc==null){
+			System.out.println("Could not load document");
+			return Response.status(404).build();
+		}
+		
 		EducationalMetaData em = new EducationalMetaData();
 
 		/*
@@ -181,6 +179,25 @@ public class ComputeEducationalMetadata {
 		return Response.status(200).entity(em).build();
 
 		// return Response.serverError().build();
+	}
+	
+	private Document getDocumentFromUri(String uri){
+		try {
+			org.jsoup.Connection.Response response = Jsoup
+					.connect(uri)
+					.ignoreContentType(true)
+					.userAgent(
+							"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0")
+					.referrer("http://www.google.com").timeout(12000)
+					.followRedirects(true).execute();
+			return response.parse();
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("[ERR] Could not load document from "+uri);
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	private String getTitleOfResource() {
