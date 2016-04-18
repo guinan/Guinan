@@ -1,7 +1,6 @@
 package de.ovgu.wdok.guinan.educ;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -29,8 +28,6 @@ import javax.ws.rs.core.UriInfo;
 
 import net.sf.classifier4J.summariser.SimpleSummariser;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -44,7 +41,6 @@ import com.sun.jersey.spi.resource.Singleton;
 
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
-import de.l3s.boilerpipe.extractors.DefaultExtractor;
 
 @Singleton
 @Path("EM")
@@ -56,7 +52,6 @@ public class ComputeEducationalMetadata {
 	Document doc;
 	private String plaintext;
 	private String orig_uri;
-	private int num_of_images;
 	private HashMap<String, Double> resourcetypemap;
 
 	/* constants */
@@ -90,7 +85,6 @@ public class ComputeEducationalMetadata {
 
 		this.plaintext = "";
 		this.orig_uri = "";
-		this.num_of_images = 0;
 		this.resourcetypemap = new HashMap<String, Double>();
 	}
 
@@ -163,6 +157,7 @@ public class ComputeEducationalMetadata {
 		 * if(this.orig_uri.endsWith(".pdf")) this.plaintext =
 		 * extractPlainTextFromPdf(uri); else
 		 */
+		em.setUri(this.orig_uri);
 		this.plaintext = extractPlainText(this.res_uri);
 		// we can only compute these values if we have some text
 		if (!plaintext.equals("")) {
@@ -372,6 +367,8 @@ public class ComputeEducationalMetadata {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
+				//TODO width and height might be non integer --> "100%"
 				// try width and height attributes of the image element itself
 				if (!img.select("[width]").isEmpty())
 					width = Integer.parseInt(img.attr("width"));
@@ -415,8 +412,6 @@ public class ComputeEducationalMetadata {
 			}
 			System.out.println("width, height: " + width + ", " + height);
 			if (width > 300 || height > 300) {
-				// check if img is inside element with class slide*
-				this.num_of_images++;
 				rtype.add(EducationalMetaData.RESOURCETYPE_IMAGE);
 			}
 		}
@@ -506,7 +501,7 @@ public class ComputeEducationalMetadata {
 
 	}
 
-	private String extractPlainTextFromPdf(String uri) {
+	/*private String extractPlainTextFromPdf(String uri) {
 		System.out.println("Trying to extract text from pdf");
 
 		String plaintext = "";
@@ -532,7 +527,7 @@ public class ComputeEducationalMetadata {
 		}
 
 		return plaintext;
-	}
+	}*/
 
 	/**
 	 * helper method for analyzing whether a certain html element has textual

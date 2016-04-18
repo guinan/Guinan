@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 public class EducationalMetaData {
 
+	String uri;
 	String language;
 	String interactivity_type;
 	String interactivity_level;
@@ -27,6 +28,14 @@ public class EducationalMetaData {
 	public static final String RESOURCETYPE_AUDIO = "audio";
 	
 
+	public String getUri() {
+		return uri;
+	}
+
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+	
 	public String getLanguage() {
 		return language;
 	}
@@ -93,15 +102,18 @@ public class EducationalMetaData {
 		this.age_range = age_range;
 	}
 
+
 	@Override
 	public String toString() {
-		return "EducationalMetaData [language=" + language
+		return "EducationalMetaData [uri=" + uri + ", language=" + language
 				+ ", interactivity_type=" + interactivity_type
 				+ ", interactivity_level=" + interactivity_level
 				+ ", learning_resource_type=" + learning_resource_type
 				+ ", title=" + title + ", description=" + description
 				+ ", age_range=" + age_range + "]";
 	}
+
+	
 
 	
 	
