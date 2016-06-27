@@ -494,15 +494,15 @@ public class GuinanMaster {
 			// System.out.println("ontology_concepts: "+gcr.getOntology_concepts());
 			resultsforclient.add(gcr);*/
 			//compute SFP
-			String xml_res = this.client.resource("http://localhost:10080/Guinan/webapp/SemFP/getSFPforDoc")
-					.queryParam("uri", gr.get_location())
-					.get(String.class);
+			//String xml_res = this.client.resource("http://localhost:10080/Guinan/webapp/SemFP/getSFPforDoc")
+			//		.queryParam("uri", gr.get_location())
+			//		.get(String.class);
 			LinkedLearningItem lli = new LinkedLearningItem();
 			
 			//reading sfp
-			Model sfp = ModelFactory.createDefaultModel();
-			sfp.read(new ByteArrayInputStream(xml_res.getBytes()), null);
-			lli.setClassificationSFP(sfp);
+			//Model sfp = ModelFactory.createDefaultModel();
+			//sfp.read(new ByteArrayInputStream(xml_res.getBytes()), null);
+			//lli.setClassificationSFP(sfp);
 			
 			String json_res =  this.client.resource("http://localhost:10080/Guinan/webapp/EM/genEM")
 					.queryParam("uri", gr.get_location()).accept(MediaType.APPLICATION_JSON)
@@ -510,7 +510,7 @@ public class GuinanMaster {
 			EducationalMetaData em = new EducationalMetaData();
 			try{
 				em = new ObjectMapper().readValue(json_res,
-						new TypeReference<ArrayList<GuinanResult>>() {
+						new TypeReference<EducationalMetaData>() {
 						});
 			}
 			catch(IOException e){
