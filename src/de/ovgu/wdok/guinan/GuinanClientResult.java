@@ -1,19 +1,11 @@
 package de.ovgu.wdok.guinan;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-
-import org.tartarus.snowball.EnglishSnowballStemmerFactory;
-import org.tartarus.snowball.ext.porterStemmer;
-import org.tartarus.snowball.util.StemmerException;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
-import de.ovgu.wdok.guinan.GuinanResult;
 import de.ovgu.wdok.guinan.graph.GuinanGraph;
-import de.ovgu.wdok.guinan.nlp.GuinanInflector;
 
 /**
  * GuinanResult is the result object that is sent back to the calling client. It

@@ -1,5 +1,6 @@
 package de.ovgu.wdok.guinan;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
@@ -25,10 +26,13 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 
 
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.spi.resource.Singleton;
@@ -39,6 +43,8 @@ import de.ovgu.wdok.guinan.connector.delicious.GuinanDeliciousConnector;
 import de.ovgu.wdok.guinan.connector.slideshare.GuinanSlideshareConnector;
 import de.ovgu.wdok.guinan.connector.stackoverflow.GuinanStackoverflowConnector;
 import de.ovgu.wdok.guinan.connector.vimeo.GuinanVimeoConnector;
+import de.ovgu.wdok.guinan.educ.EducationalMetaData;
+import de.ovgu.wdok.guinan.lli.LinkedLearningItem;
 import de.ovgu.wdok.guinan.nlp.KeywordExtractor;
 import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
 
@@ -132,9 +138,9 @@ public class GuinanMaster {
 			/* registering VimeoConnector 
 			System.out.print("Registering Vimeoconnecotr ... ");
 			this.sendGet("http://localhost:10080/Guinan/vimeoconnector/register");
-			System.out.println(" done.");*/
-			GuinanDeliciousConnector del = new GuinanDeliciousConnector();
-			del.register();
+			System.out.println(" done.");
+			/*GuinanDeliciousConnector del = new GuinanDeliciousConnector();
+			del.register();*/
 			
 			GuinanStackoverflowConnector so = new GuinanStackoverflowConnector();
 			so.register();
@@ -420,7 +426,7 @@ public class GuinanMaster {
 		this.setLast_query(query);
 		// prepare list containing the results of all connectors
 		final ArrayList<GuinanResult> resultsfromconnectors = new ArrayList<GuinanResult>();
-		final ArrayList<GuinanClientResult> resultsforclient = new ArrayList<GuinanClientResult>();
+		final ArrayList<LinkedLearningItem> resultsforclient = new ArrayList<>();
 		// if no connector is registered, return "Service unavailable" to the
 		// user
 		if (this.getRegisteredConnectors().size() < 1)
@@ -464,7 +470,7 @@ public class GuinanMaster {
 			}
 		}
 		for (GuinanResult gr : resultsfromconnectors) {
-			GuinanClientResult gcr = new GuinanClientResult(gr);
+		/*	GuinanClientResult gcr = new GuinanClientResult(gr);
 			ArrayList<String> comments = gcr.getComments();
 			ArrayList<String> unhandled_keywords = new ArrayList<String>();
 			// get further concepts from the content description
@@ -486,7 +492,34 @@ public class GuinanMaster {
 			// gcr.setOntology_concepts(this.buildConceptGraph(
 			// gcr.getCommon_tags(), gcr.get_location()));
 			// System.out.println("ontology_concepts: "+gcr.getOntology_concepts());
-			resultsforclient.add(gcr);
+			resultsforclient.add(gcr);*/
+			//compute SFP
+			String xml_res = this.client.resource("http://localhost:10080/Guinan/webapp/SemFP/getSFPforDoc")
+					.queryParam("uri", gr.get_location())
+					.get(String.class);
+			LinkedLearningItem lli = new LinkedLearningItem();
+			
+			//reading sfp
+			Model sfp = ModelFactory.createDefaultModel();
+			sfp.read(new ByteArrayInputStream(xml_res.getBytes()), null);
+			lli.setClassificationSFP(sfp);
+			
+			String json_res =  this.client.resource("http://localhost:10080/Guinan/webapp/EM/genEM")
+					.queryParam("uri", gr.get_location()).accept(MediaType.APPLICATION_JSON)
+					.get(String.class);
+			EducationalMetaData em = new EducationalMetaData();
+			try{
+				em = new ObjectMapper().readValue(json_res,
+						new TypeReference<ArrayList<GuinanResult>>() {
+						});
+			}
+			catch(IOException e){
+				System.err.println("Could not map JSON to object");
+			}
+			lli.setEducationalInteractivityLevel(em.getInteractivity_level());
+			lli.setEducationalLearningResourceType(em.getLearning_resource_type());
+		
+			resultsforclient.add(lli);
 		}
 
 		// Everything went fine, report OK and return the result as JSON
