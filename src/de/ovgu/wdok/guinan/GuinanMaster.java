@@ -1,6 +1,5 @@
 package de.ovgu.wdok.guinan;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
@@ -25,21 +24,16 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 
-
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.spi.resource.Singleton;
 
 import de.ovgu.wdok.guinan.connector.GuinanConnector;
 import de.ovgu.wdok.guinan.connector.GuinanThread;
-import de.ovgu.wdok.guinan.connector.delicious.GuinanDeliciousConnector;
 import de.ovgu.wdok.guinan.connector.slideshare.GuinanSlideshareConnector;
 import de.ovgu.wdok.guinan.connector.stackoverflow.GuinanStackoverflowConnector;
 import de.ovgu.wdok.guinan.connector.vimeo.GuinanVimeoConnector;
@@ -47,6 +41,14 @@ import de.ovgu.wdok.guinan.educ.EducationalMetaData;
 import de.ovgu.wdok.guinan.lli.LinkedLearningItem;
 import de.ovgu.wdok.guinan.nlp.KeywordExtractor;
 import de.ovgu.wdok.guinan.ontologyconnector.GuinanOntologyConnector;
+
+import com.viceversatech.rdfbeans.RDFBeanManager;
+import com.viceversatech.rdfbeans.exceptions.RDFBeanException;
+
+import org.ontoware.rdf2go.ModelFactory;
+import org.ontoware.rdf2go.RDF2Go;
+import org.ontoware.rdf2go.model.Model;
+import org.ontoware.rdf2go.model.node.Resource;
 
 /**
  * GuinanMaster is part of the Guinan Webservice.<br>
@@ -424,6 +426,10 @@ public class GuinanMaster {
 
 		// save last query
 		this.setLast_query(query);
+		ModelFactory modelFactory = RDF2Go.getModelFactory();
+		Model model = modelFactory.createModel();
+		model.open();        
+		RDFBeanManager manager = new RDFBeanManager(model);
 		// prepare list containing the results of all connectors
 		final ArrayList<GuinanResult> resultsfromconnectors = new ArrayList<GuinanResult>();
 		final ArrayList<LinkedLearningItem> resultsforclient = new ArrayList<>();
@@ -520,8 +526,18 @@ public class GuinanMaster {
 			lli.setEducationalLearningResourceType(em.getLearning_resource_type());
 		
 			resultsforclient.add(lli);
+			
+			//put lli into RDF model
+			try {
+				Resource r = manager.add(lli);
+			} catch (RDFBeanException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//serialize rdf model as JSON-LD
 		}
-
+		model.close();
 		// Everything went fine, report OK and return the result as JSON
 		return makeCORS(Response.status(Status.OK).entity(resultsforclient));
 
