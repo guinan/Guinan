@@ -518,7 +518,12 @@ public class GuinanMaster {
 			}
 			lli.setEducationalInteractivityLevel(em.getInteractivity_level());
 			lli.setEducationalLearningResourceType(em.getLearning_resource_type());
-		
+			lli.setUri(gr.get_location());
+			lli.setDescription(em.getDescription());
+			lli.setEducationalTypicalAgeRange(em.getAge_range());
+			lli.setLanguage(em.getLanguage());
+			lli.setTechnicalLocation(gr.get_location());
+			lli.setTitle(em.getTitle());
 			resultsforclient.add(lli);
 		}
 
