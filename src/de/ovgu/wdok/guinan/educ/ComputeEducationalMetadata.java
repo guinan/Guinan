@@ -120,10 +120,10 @@ public class ComputeEducationalMetadata {
 		// dissecting the uri
 		try {
 			URL res_uri = new URL(this.res_uri);
-			System.out.println("resource uri: " + res_uri);
+			//System.out.println("resource uri: " + res_uri);
 			if (res_uri.getQuery() != null) {
 				this.orig_uri = res_uri.getQuery();
-				System.out.println("URI: " + this.orig_uri);
+				//System.out.println("URI: " + this.orig_uri);
 				// does uri have uri embedded?
 				if (this.orig_uri.indexOf("=") != -1) {
 					proxy=true;
@@ -142,12 +142,12 @@ public class ComputeEducationalMetadata {
 		if(this.doc==null){
 			//if proxy failed try to fetch doc from original uri
 			if (proxy){
-				System.out.println("Trying alternative URI");
+				//System.out.println("Trying alternative URI");
 				this.doc = getDocumentFromUri(this.orig_uri);
 			}
 		}
 		if(this.doc==null){
-			System.out.println("Could not load document");
+			System.err.println("Could not load document");
 			return Response.status(404).build();
 		}
 		
@@ -189,7 +189,7 @@ public class ComputeEducationalMetadata {
 		}
 		catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.out.println("[ERR] Could not load document from "+uri);
+			System.err.println("[ERR] Could not load document from "+uri);
 			e.printStackTrace();
 		}
 		return null;
@@ -213,7 +213,7 @@ public class ComputeEducationalMetadata {
 
 		// try to summarize with tools
 		desc = sum.summarise(this.plaintext, 5);
-		System.out.println(desc);
+		//System.out.println(desc);
 		return desc;
 	}
 
@@ -349,7 +349,7 @@ public class ComputeEducationalMetadata {
 								+ tmp.getAuthority() + img.attr("src"));
 
 					}
-					System.out.println("Image: " + url);
+					//System.out.println("Image: " + url);
 					bimg = ImageIO.read(url.toURL());
 					if (bimg != null) {
 						width = bimg.getWidth();
@@ -374,7 +374,7 @@ public class ComputeEducationalMetadata {
 					width = Integer.parseInt(img.attr("width"));
 				if (!img.select("[height]").isEmpty())
 					height = Integer.parseInt(img.attr("height"));
-				System.out.println("width, height: " + width + ", " + height);
+				//System.out.println("width, height: " + width + ", " + height);
 				// try css attributes
 				// [attr*=valContaining]
 				if (!img.select("[style*=width]").isEmpty()) {
@@ -410,7 +410,7 @@ public class ComputeEducationalMetadata {
 				}
 
 			}
-			System.out.println("width, height: " + width + ", " + height);
+			//System.out.println("width, height: " + width + ", " + height);
 			if (width > 300 || height > 300) {
 				rtype.add(EducationalMetaData.RESOURCETYPE_IMAGE);
 			}
@@ -425,7 +425,7 @@ public class ComputeEducationalMetadata {
 		// class name starts with slide
 
 		for (String slidestr : this.elemsForSlides) {
-			System.out.println("Trying " + slidestr + "[class~=.*slide.*]");
+			//System.out.println("Trying " + slidestr + "[class~=.*slide.*]");
 			if (!doc.select(slidestr + "[class~=.*slide.*]").isEmpty()) {
 				rtype.add(EducationalMetaData.RESOURCETYPE_SLIDES);
 			}
@@ -564,7 +564,7 @@ public class ComputeEducationalMetadata {
 		String trim = text.trim();
 		if (trim.isEmpty())
 			return 0;
-		System.out.println(trim.split("\\W+").length);
+		//System.out.println(trim.split("\\W+").length);
 		return trim.split("\\W+").length;
 	}
 
