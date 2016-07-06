@@ -8,6 +8,7 @@ import java.util.StringTokenizer;
 import org.tartarus.snowball.EnglishSnowballStemmerFactory;
 import org.tartarus.snowball.util.StemmerException;
 
+
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class ExtendedGuinanResult extends GuinanClientResult {

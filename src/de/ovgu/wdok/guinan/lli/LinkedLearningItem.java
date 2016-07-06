@@ -2,7 +2,7 @@ package de.ovgu.wdok.guinan.lli;
 
 import java.util.ArrayList;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Model;
 import com.viceversatech.rdfbeans.annotations.RDF;
 import com.viceversatech.rdfbeans.annotations.RDFBean;
 import com.viceversatech.rdfbeans.annotations.RDFSubject;

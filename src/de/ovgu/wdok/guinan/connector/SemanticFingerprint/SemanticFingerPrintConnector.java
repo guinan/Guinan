@@ -1,15 +1,9 @@
 
 package de.ovgu.wdok.guinan.connector.SemanticFingerprint;
 
-import graph.WTPGraph;
-
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
-
-
-import utils.MainClass;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,9 +12,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import org.graphstream.graph.Node;
+import org.apache.jena.rdf.model.Model;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -29,6 +22,8 @@ import de.ovgu.wdok.guinan.GuinanClientResult;
 import de.ovgu.wdok.guinan.GuinanResult;
 import de.ovgu.wdok.guinan.connector.GuinanConnector;
 import de.ovgu.wdok.guinan.connector.GuinanThread;
+import graph.WTPGraph;
+import utils.MainClass;
 
 @Path("WTPSemanticFingerprintConnector")
 public class SemanticFingerPrintConnector extends GuinanConnector {
