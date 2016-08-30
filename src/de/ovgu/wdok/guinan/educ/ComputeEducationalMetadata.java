@@ -41,6 +41,7 @@ import com.sun.jersey.spi.resource.Singleton;
 
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import de.l3s.boilerpipe.extractors.DefaultExtractor;
 
 @Singleton
 @Path("EM")
@@ -176,7 +177,7 @@ public class ComputeEducationalMetadata {
 		// return Response.serverError().build();
 	}
 	
-	private Document getDocumentFromUri(String uri){
+	public Document getDocumentFromUri(String uri){
 		try {
 			org.jsoup.Connection.Response response = Jsoup
 					.connect(uri)
@@ -460,14 +461,15 @@ public class ComputeEducationalMetadata {
 	 * @param uri
 	 * @return
 	 */
-	private String extractPlainText(String uri) {
+	public String extractPlainText(String uri) {
 
 		// try to get a clean version of the content
 		// boilerpipe removes things like navigation
 		String plaintext = "";
 		try {
-			plaintext = ArticleExtractor.INSTANCE.getText(uri);
-			plaintext.trim();
+			plaintext = DefaultExtractor.INSTANCE.getText(uri);
+			//plaintext.trim();
+			System.out.println(plaintext);
 		} catch (BoilerpipeProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -587,5 +589,13 @@ public class ComputeEducationalMetadata {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
+	}
+
+	public Document getDoc() {
+		return doc;
+	}
+
+	public void setDoc(Document doc) {
+		this.doc = doc;
 	}
 }

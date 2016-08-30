@@ -3,6 +3,7 @@
 	<name>Guinan</name>
 	<comment></comment>
 	<projects>
+		<project>Semantic_Fingerprint_WTP</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
