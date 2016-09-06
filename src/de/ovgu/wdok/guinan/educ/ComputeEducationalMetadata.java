@@ -72,7 +72,8 @@ public class ComputeEducationalMetadata {
 	// word count threshold for narrative text
 	final private int wc_threshold = 500;
 
-	final HashMap<Integer, String> gradelevel_agerange = new HashMap<Integer, String>();
+	final public int [] gradelevel_agerange = new int[14];
+	final public HashMap<Integer, String> reading_ease_conversion = new HashMap<Integer, String>();
 
 	public ComputeEducationalMetadata() {
 		try {
@@ -90,21 +91,16 @@ public class ComputeEducationalMetadata {
 	}
 
 	private void initGradeLevelMap() {
-		this.gradelevel_agerange.put(0, "0-6");
-		this.gradelevel_agerange.put(1, "6-7");
-		this.gradelevel_agerange.put(2, "7-8");
-		this.gradelevel_agerange.put(3, "8-9");
-		this.gradelevel_agerange.put(4, "9-10");
-		this.gradelevel_agerange.put(5, "10-11");
-		this.gradelevel_agerange.put(6, "11-12");
-		this.gradelevel_agerange.put(7, "12-13");
-		this.gradelevel_agerange.put(8, "13-14");
-		this.gradelevel_agerange.put(9, "14-15");
-		this.gradelevel_agerange.put(10, "15-16");
-		this.gradelevel_agerange.put(11, "16-17");
-		this.gradelevel_agerange.put(12, "17-18");
-		this.gradelevel_agerange.put(13, ">18");
-
+		this.gradelevel_agerange[0]= 0;
+		int age = 6;
+		for (int i=1; i<13; i++){
+			this.gradelevel_agerange[i]=age;
+			age++;
+		}
+		this.gradelevel_agerange[13] = 19;
+	}
+	
+	private void initReadingEaseConversionMap(){
 	}
 
 	public void init(String profileDirectory) throws LangDetectException {
@@ -242,7 +238,7 @@ public class ComputeEducationalMetadata {
 	 * @param resource_text
 	 * @return
 	 */
-	private String computeReadabiltyScore(String resource_text, int mode) {
+	private int computeReadabiltyScore(String resource_text, int mode) {
 
 		this.r = new Readability(resource_text);
 		int fleschkincaid = r.getFleschKincaidGradeLevel().intValue();
@@ -264,15 +260,20 @@ public class ComputeEducationalMetadata {
 		// for other (european) languages
 		else
 			gradelevel = (colemanLiau + ari) / 2;
-
+		
 		if (gradelevel < 0)
-			return this.gradelevel_agerange.get(0);
+			return getAgeForGradeLevel(0);
 		else if (gradelevel > 13)
-			return this.gradelevel_agerange.get(13);
+			return getAgeForGradeLevel(13);
 		else
-			return this.gradelevel_agerange.get(gradelevel);
+			return getAgeForGradeLevel(gradelevel);
 
 		// return gradelevel+"";
+	}
+	
+	public int getAgeForGradeLevel(double score){
+		int nearestInt = (int) Math.round(score);
+		return this.gradelevel_agerange[nearestInt];
 	}
 
 	/**
