@@ -4,6 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project>Semantic_Fingerprint_WTP</project>
+		<project>Semantic Fingerprint WTP</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

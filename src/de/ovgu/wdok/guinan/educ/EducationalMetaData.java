@@ -17,7 +17,7 @@ public class EducationalMetaData {
 	ArrayList <String> learning_resource_type;
 	String title;
 	String description;
-	int age_range;
+	String age_range;
 	final static String RESOURCETYPE_TABLE="table";
 	final static String RESOURCETYPE_FAQ="FAQ";
 	final static String RESOURCETYPE_CODE="code";
@@ -94,11 +94,11 @@ public class EducationalMetaData {
 		this.description = description;
 	}
 
-	public int getAge_range() {
+	public String getAge_range() {
 		return age_range;
 	}
 
-	public void setAge_range(int age_range) {
+	public void setAge_range(String age_range) {
 		this.age_range = age_range;
 	}
 

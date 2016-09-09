@@ -160,9 +160,9 @@ public class ComputeEducationalMetadata {
 		if (!plaintext.equals("")) {
 			em.setLanguage(this.identifyLanguage(plaintext));
 			if (em.getLanguage().equalsIgnoreCase("en"))
-				em.setAge_range(this.computeReadabiltyScore(plaintext, 0));
+				em.setAge_range(String.valueOf(this.computeReadabiltyScore(plaintext, 0)));
 			else
-				em.setAge_range(this.computeReadabiltyScore(plaintext, 1));
+				em.setAge_range(String.valueOf(this.computeReadabiltyScore(plaintext, 1)));
 			em.setDescription(this.getDescriptionOfResource());
 		}
 		em.setLearning_resource_type(this.computeLearningResourceType());
